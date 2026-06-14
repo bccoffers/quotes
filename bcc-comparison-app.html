@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCC – Comparison Statement Tool</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--navy:#0f2044;--navy2:#1a3260;--gold:#c9973a;--gold2:#e8b95a;--cream:#f8f6f1;--white:#fff;--border:#d5d0c8;--text:#1a1a2e;--muted:#6b7280;--danger:#dc2626;--success:#16a34a;--warn:#d97706;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);font-size:13px}
+.app-header{background:var(--navy);padding:0 24px;display:flex;align-items:center;gap:16px;border-bottom:3px solid var(--gold);height:54px}
+.logo{font-size:22px;font-weight:800;color:var(--gold);letter-spacing:2px}
+.app-sub{color:#ccd6f0;font-size:12px}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.tab-bar{background:var(--navy2);display:flex;gap:2px;padding:0 16px}
+.tab-btn{padding:10px 18px;color:#aab4d0;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;border-bottom:3px solid transparent;transition:all .15s}
+.tab-btn:hover{color:#fff}.tab-btn.active{color:var(--gold2);border-bottom-color:var(--gold)}
+.tab-content{padding:20px 24px;display:none}.tab-content.active{display:block}
+.card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px}
+.slabel{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy2)}
+.btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{background:var(--gold2);color:var(--navy)}
+.btn-outline{background:transparent;border:1.5px solid var(--navy);color:var(--navy)}.btn-outline:hover{background:var(--navy);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-warn{background:var(--warn);color:#fff}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{background:var(--cream)}
+.btn-sm{padding:4px 10px;font-size:11px}.btn-xs{padding:2px 7px;font-size:10px}
+input,select,textarea{border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-size:12px;color:var(--text);background:#fff;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px}
+.form-row{display:grid;gap:12px;margin-bottom:12px}
+.cols2{grid-template-columns:1fr 1fr}.cols3{grid-template-columns:1fr 1fr 1fr}.cols4{grid-template-columns:1fr 1fr 1fr 1fr}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:11px}
+th{background:var(--navy);color:#fff;padding:6px 10px;text-align:left;font-weight:600;white-space:nowrap}
+th.gh{background:var(--gold)}
+td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:middle;max-width:0}
+td.desc{max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default}
+td.desc:hover{white-space:normal;word-break:break-word;background:#fffff0;z-index:1;position:relative}
+tr:hover td{background:#f5f3ef}
+tr.hdr-row td{background:#dbeafe;font-weight:700;color:#1e3a8a}
+tr.no-qty td{font-weight:700}
+.num{text-align:right}
+.tbl-input{border:1px solid #ddd;padding:3px 6px;width:100%;font-size:11px;border-radius:3px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.bk{background:#d1fae5;color:#065f46}.bn{background:#e0e7ff;color:var(--navy)}.bg{background:#fef3c7;color:#92400e}.gray{background:#f3f4f6;color:#6b7280}
+.proj-card{border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
+.proj-card:hover{border-color:var(--gold)}.proj-card.sel{border-color:var(--navy);background:#f0f4ff}
+.proj-icon{width:36px;height:36px;border-radius:6px;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.overlay{position:fixed;inset:0;background:rgba(15,32,68,.7);display:flex;align-items:center;justify-content:center;z-index:1000;display:none}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:8px;padding:24px;width:94%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.3)}
+.modal-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--navy);color:#fff;padding:10px 18px;border-radius:6px;font-size:12px;font-weight:600;border-left:4px solid var(--gold);transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.pw-wrap{position:relative}.pw-wrap input{padding-right:36px}
+.pw-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--muted);font-size:13px}
+.lock-wrap{text-align:center;padding:48px 20px}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--gold);color:#fff;border-radius:50%;font-size:10px;font-weight:700;flex-shrink:0}
+.drag-handle{cursor:grab;color:var(--muted);font-size:14px;padding:0 4px;user-select:none}
+tr.drag-over{border-top:2px solid var(--gold)}
+.hidden{display:none!important}
+.flex{display:flex}.gap2{gap:8px}.gap3{gap:12px}.ic{align-items:center}.jb{justify-content:space-between}
+.mb2{margin-bottom:8px}.mb3{margin-bottom:12px}.mt2{margin-top:8px}
+.w100{width:100%}.text-muted{color:var(--muted)}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid #ddd;border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Sub portal */
+.sub-hdr{background:var(--navy);padding:14px 24px;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--gold)}
+.sub-body{max-width:1100px;margin:0 auto;padding:20px}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<!-- ═══ SUBCONTRACTOR PORTAL ═══ -->
+<div id="subApp" class="hidden">
+  <div class="sub-hdr">
+    <span class="logo" style="font-size:18px;">BCC</span>
+    <div>
+      <p style="color:#fff;font-size:14px;font-weight:700;" id="ss_title">Subcontractor Quotation Portal</p>
+      <p style="color:#aab4d0;font-size:11px;" id="ss_sub"></p>
+    </div>
+  </div>
+  <div class="sub-body" id="ss_body"></div>
+</div>
+
+<!-- ═══ ADMIN APP ═══ -->
+<div id="adminApp">
+<header class="app-header">
+  <span class="logo">BCC</span>
+  <span class="app-sub">Comparison Statement Tool</span>
+  <div class="hdr-right">
+    <span id="hdrPkg" style="color:#aab4d0;font-size:11px;"></span>
+  </div>
+</header>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('projects')" id="tab-projects">📁 Projects</button>
+  <button class="tab-btn" onclick="showTab('boq')" id="tab-boq">📋 BOQ Builder</button>
+  <button class="tab-btn" onclick="showTab('comparison')" id="tab-comparison">📊 Comparison</button>
+  <button class="tab-btn" onclick="showTab('summary')" id="tab-summary">📄 Summary</button>
+</div>
+
+<!-- PROJECTS TAB -->
+<div class="tab-content active" id="tab-projects-content">
+  <div style="max-width:960px;margin:0 auto;">
+    <div class="flex jb ic mb3">
+      <h2 style="font-size:15px;font-weight:700;color:var(--navy);">Projects & Packages</h2>
+      <button class="btn btn-primary" onclick="openProjModal()">+ New Project</button>
+    </div>
+    <div id="projList"></div>
+    <div id="pkgSection" class="hidden">
+      <div class="flex jb ic mb3 mt2" style="border-top:2px solid var(--gold);padding-top:14px;">
+        <h3 style="font-size:13px;font-weight:700;color:var(--navy);">Packages — <span id="pkgProjTitle"></span></h3>
+        <button class="btn btn-gold" onclick="openPkgModal()">+ New Package</button>
+      </div>
+      <div id="pkgList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOQ TAB -->
+<div class="tab-content" id="tab-boq-content">
+  <div id="boqEmpty" class="card" style="text-align:center;padding:40px;"><p class="text-muted">Open a package from the Projects tab to build its BOQ.</p></div>
+  <div id="boqMain" class="hidden">
+    <div class="flex jb ic mb3">
+      <div>
+        <h2 style="font-size:15px;font-weight:700;color:var(--navy);" id="boqTitle"></h2>
+        <p style="font-size:11px;color:var(--muted);" id="boqRef"></p>
+      </div>
+      <div class="flex gap2">
+        <button class="btn btn-ghost btn-sm" onclick="dlTemplate()">⬇ Template</button>
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0;">⬆ Import<input type="file" accept=".xlsx,.xls" class="hidden" onchange="importXL(event)"></label>
+        <button class="btn btn-outline btn-sm" onclick="addRow('item')">+ Item</button>
+        <button class="btn btn-outline btn-sm" onclick="addRow('header')">+ Header</button>
+        <button class="btn btn-gold btn-sm" onclick="openSCModal()">👥 Subcontractors</button>
+        <button class="btn btn-primary btn-sm" onclick="saveBOQ()">💾 Save BOQ</button>
+      </div>
+    </div>
+    <div class="card" style="background:#f0f4ff;margin-bottom:12px;">
+      <p class="slabel">Admin Fields (appear in comparison)</p>
+      <div class="form-row cols3">
+        <div><label>Specified Manufacturer</label><input id="af_mfr" oninput="S.adminFields.mfr=this.value"></div>
+        <div><label>Specifications</label><input id="af_specs" oninput="S.adminFields.specs=this.value"></div>
+        <div><label>"Included" Note</label><input id="af_incl" placeholder="Included in quoted price" oninput="S.adminFields.inclNote=this.value"></div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="tbl-wrap" style="max-height:58vh;overflow-y:auto;">
+        <table id="boqTable">
+          <thead><tr>
+            <th style="width:24px;"></th><th style="width:32px;">#</th>
+            <th>Description</th><th style="width:58px;">Unit</th>
+            <th class="gh" style="width:80px;">Quantity</th>
+            <th class="gh" style="width:90px;">Budget Rate</th>
+            <th class="gh" style="width:100px;">Budget Amount</th>
+            <th class="gh" style="width:78px;">Note</th>
+            <th style="width:66px;text-align:center;" title="Tick to make this a section header">Header?</th>
+            <th style="width:52px;">Del</th>
+          </tr></thead>
+          <tbody id="boqBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON TAB -->
+<div class="tab-content" id="tab-comparison-content">
+  <div id="compLock" class="card">
+    <div class="lock-wrap">
+      <div style="font-size:44px;margin-bottom:10px;">🔒</div>
+      <h3 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;">Admin Access</h3>
+      <p class="text-muted" style="font-size:12px;margin-bottom:20px;">Enter the package password to view the comparison.</p>
+      <div style="max-width:280px;margin:0 auto;">
+        <div class="pw-wrap mb2"><input type="password" id="compPw" placeholder="Package password" onkeydown="if(event.key==='Enter')unlockComp()"><button class="pw-eye" onclick="toggleEye('compPw')">👁</button></div>
+        <button class="btn btn-primary w100" onclick="unlockComp()">Unlock</button>
+        <p style="margin-top:10px;"><a href="#" onclick="openResetPw()" style="font-size:11px;color:var(--gold);">Forgot password? Reset</a></p>
+      </div>
+    </div>
+  </div>
+  <div id="compContent" class="hidden">
+    <div id="compNoPkg" class="card" style="text-align:center;padding:40px;"><p class="text-muted">Open a package to view comparison.</p></div>
+    <div id="compMain" class="hidden">
+      <div class="flex jb ic mb3">
+        <div><h2 style="font-size:14px;font-weight:700;color:var(--navy);" id="compTitle"></h2><p style="font-size:11px;color:var(--muted);" id="compSub"></p></div>
+        <div class="flex gap2">
+          <button class="btn btn-success btn-sm" onclick="exportExcel()">⬇ Export Excel</button>
+          <button class="btn btn-ghost btn-sm" onclick="renderComp()">🔄 Refresh</button>
+        </div>
+      </div>
+      <div id="compWrap"></div>
+      <div id="compSigs" style="margin-top:24px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY TAB -->
+<div class="tab-content" id="tab-summary-content">
+  <div id="sumLock" class="card">
+    <div class="lock-wrap">
+      <div style="font-size:44px;margin-bottom:10px;">🔒</div>
+      <h3 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;">Admin Access</h3>
+      <p class="text-muted" style="font-size:12px;margin-bottom:20px;">Enter the package password to view the summary.</p>
+      <div style="max-width:280px;margin:0 auto;">
+        <div class="pw-wrap mb2"><input type="password" id="sumPw" placeholder="Package password" onkeydown="if(event.key==='Enter')unlockSum()"><button class="pw-eye" onclick="toggleEye('sumPw')">👁</button></div>
+        <button class="btn btn-primary w100" onclick="unlockSum()">Unlock</button>
+      </div>
+    </div>
+  </div>
+  <div id="sumContent" class="hidden">
+    <div class="flex jb ic mb3">
+      <h2 style="font-size:15px;font-weight:700;color:var(--navy);">Comparison Summary</h2>
+      <button class="btn btn-success btn-sm" onclick="exportSummary()">⬇ Export Summary Excel</button>
+    </div>
+    <div id="sumWrap"></div>
+    <canvas id="sumChart" style="max-width:700px;margin:20px 0;display:none;background:#fff;border-radius:6px;border:1px solid var(--border);padding:16px;"></canvas>
+  </div>
+</div>
+</div><!-- /adminApp -->
+
+<!-- ═══ MODALS ═══ -->
+<div class="overlay" id="projModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-title" id="projModalTitle">New Project</div>
+    <div class="form-row cols2"><div><label>Project Name *</label><input id="pm_name"></div><div><label>Project Code</label><input id="pm_code"></div></div>
+    <div class="form-row cols2"><div><label>Client</label><input id="pm_client"></div><div><label>Consultant</label><input id="pm_cons"></div></div>
+    <div><label>Location</label><input id="pm_loc" style="margin-bottom:12px;"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('projModal')">Cancel</button><button class="btn btn-primary" onclick="saveProj()">Save</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="pkgModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title" id="pkgModalTitle">New Package</div>
+    <div class="form-row cols2"><div><label>Package Name *</label><input id="pkm_name"></div><div><label>Scope</label><input id="pkm_scope"></div></div>
+    <div class="form-row cols3"><div><label>CS Ref No.</label><input id="pkm_ref"></div><div><label>Date</label><input type="date" id="pkm_date"></div><div><label>Rev</label><input id="pkm_rev" value="REV-0"></div></div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+      <p style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px;">🔒 Admin Password (for Comparison & Summary tabs)</p>
+      <p id="pkm_hint" style="font-size:11px;color:var(--success);margin-bottom:6px;"></p>
+      <div class="form-row cols2">
+        <div class="pw-wrap"><label>Password *</label><input type="password" id="pkm_pw" placeholder="Required"><button class="pw-eye" onclick="toggleEye('pkm_pw')">👁</button></div>
+        <div class="pw-wrap"><label>Confirm *</label><input type="password" id="pkm_pw2" placeholder="Repeat"><button class="pw-eye" onclick="toggleEye('pkm_pw2')">👁</button></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('pkgModal')">Cancel</button><button class="btn btn-primary" onclick="savePkg()">Save</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="scModal">
+  <div class="modal" style="max-width:780px;">
+    <div class="modal-title">👥 Subcontractors & Links</div>
+    <div style="background:#f0f4ff;border:1px solid #c7d7fb;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:11px;">
+      <p style="font-weight:700;color:var(--navy);margin-bottom:6px;">📋 Same link for all revisions — no new link needed:</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+        <div style="background:#fff;border-radius:4px;padding:7px;border-left:3px solid #3b82f6;font-size:10px;"><strong>STEP 1</strong><br>Copy & send link to SC</div>
+        <div style="background:#fff;border-radius:4px;padding:7px;border-left:3px solid #d97706;font-size:10px;"><strong>STEP 2</strong><br>SC fills & submits Rev 0</div>
+        <div style="background:#fff;border-radius:4px;padding:7px;border-left:3px solid #16a34a;font-size:10px;"><strong>STEP 3 (Admin)</strong><br>Click "Lock & Request Revision"</div>
+        <div style="background:#fff;border-radius:4px;padding:7px;border-left:3px solid #7c3aed;font-size:10px;"><strong>STEP 4</strong><br>SC opens same link → submits Rev 1</div>
+      </div>
+    </div>
+    <div id="scListWrap" style="margin-bottom:14px;"></div>
+    <div class="card" style="background:var(--cream);">
+      <p class="slabel">Add Subcontractor</p>
+      <div class="form-row cols2"><div><label>Company Name *</label><input id="sc_co"></div><div><label>Contact Person</label><input id="sc_ct"></div></div>
+      <div class="form-row cols2"><div><label>Mobile</label><input id="sc_mob" placeholder="+971 52 000 0000"></div><div><label>Email</label><input id="sc_em"></div></div>
+      <button class="btn btn-gold" onclick="addSC()">+ Add Subcontractor</button>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('scModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- SC Preview Modal -->
+<div class="overlay" id="scPreviewModal">
+  <div class="modal" style="max-width:1000px;width:98%;">
+    <div class="modal-title" id="scPreviewTitle">Portal Preview</div>
+    <div id="scPreviewBody" style="max-height:72vh;overflow-y:auto;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('scPreviewModal');openModal('scModal');">← Back</button>
+      <button class="btn btn-ghost" onclick="closeModal('scPreviewModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="resetPwModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">🔑 Reset Password</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Set a new admin password for this package.</p>
+    <div class="form-row">
+      <div class="pw-wrap"><label>New Password</label><input type="password" id="rp_pw" onkeydown="if(event.key==='Enter')doReset()"><button class="pw-eye" onclick="toggleEye('rp_pw')">👁</button></div>
+    </div>
+    <div class="form-row">
+      <div class="pw-wrap"><label>Confirm</label><input type="password" id="rp_pw2" onkeydown="if(event.key==='Enter')doReset()"><button class="pw-eye" onclick="toggleEye('rp_pw2')">👁</button></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('resetPwModal')">Cancel</button><button class="btn btn-primary" onclick="doReset()">Save Password</button></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  STORAGE — Firestore REST API (public key, no SDK needed)
+//  NOTE: In Firebase Console → Firestore → Rules, set:
+//    allow read, write: if true;
+//  This is required for subcontractors to submit from any device.
+// ════════════════════════════════════════════════════════════════════
+const FB={
+  key:'AIzaSyAbQTThbaEj1O2JfsVRrY27vY_qQLDz1XI',
+  project:'bcc-quotes',
+  coll:'bcc_data',
+  doc:'projects'
+};
+
+function lsGet(k){try{return JSON.parse(localStorage.getItem('bcc_'+k)||'null');}catch{return null;}}
+function lsSet(k,v){try{localStorage.setItem('bcc_'+k,JSON.stringify(v));}catch{}}
+
+async function dbRead(){
+  try{
+    const r=await fetch(`https://firestore.googleapis.com/v1/projects/${FB.project}/databases/(default)/documents/${FB.coll}/${FB.doc}?key=${FB.key}`);
+    if(!r.ok){console.warn('dbRead HTTP',r.status);return null;}
+    const d=await r.json();
+    const raw=d?.fields?.data?.stringValue;
+    return raw?JSON.parse(raw):null;
+  }catch(e){console.warn('dbRead:',e);return null;}
+}
+
+async function dbWrite(data){
+  try{
+    const body=JSON.stringify({fields:{data:{stringValue:JSON.stringify(data)}}});
+    const headers={'Content-Type':'application/json'};
+    // Try PATCH (update)
+    const r1=await fetch(`https://firestore.googleapis.com/v1/projects/${FB.project}/databases/(default)/documents/${FB.coll}/${FB.doc}?updateMask.fieldPaths=data&key=${FB.key}`,{method:'PATCH',headers,body});
+    if(r1.ok)return true;
+    // Try POST (create)
+    const r2=await fetch(`https://firestore.googleapis.com/v1/projects/${FB.project}/databases/(default)/documents/${FB.coll}?documentId=${FB.doc}&key=${FB.key}`,{method:'POST',headers,body});
+    return r2.ok;
+  }catch(e){console.warn('dbWrite:',e);return false;}
+}
+
+async function persist(){
+  lsSet('projects',S.projects);
+  const ok=await dbWrite(S.projects);
+  console.log(ok?'✓ Saved to Firebase':'⚠ Firebase save failed, localStorage only');
+  return ok;
+}
+
+async function loadData(){
+  let d=await dbRead();
+  if(!d||!Array.isArray(d))d=lsGet('projects')||[];
+  S.projects=d;
+  lsSet('projects',d);
+  return d;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════════════
+const S={
+  projects:[],
+  curProj:null,curPkg:null,
+  boqRows:[],scs:[],subs:{},
+  adminFields:{mfr:'',specs:'',inclNote:''},
+  compUnlocked:false,sumUnlocked:false,
+  dragIdx:null,
+  _eProjId:null,_ePkgId:null,
+};
+
+// ════════════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════════════
+async function boot(){
+  const params=new URLSearchParams(window.location.search);
+  const pkgId=params.get('pkg'), scId=params.get('sc');
+  if(pkgId&&scId){
+    document.getElementById('adminApp').classList.add('hidden');
+    document.getElementById('subApp').classList.remove('hidden');
+    runSubPortal(pkgId,scId);
+  } else {
+    document.getElementById('subApp').classList.add('hidden');
+    document.getElementById('adminApp').classList.remove('hidden');
+    await loadData();
+    renderProjs();
+    toast('Ready ✓','success');
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  SUBCONTRACTOR PORTAL
+// ════════════════════════════════════════════════════════════════════
+async function runSubPortal(pkgId,scId){
+  const setH=h=>{document.getElementById('ss_body').innerHTML=h;};
+  setH(`<div style="text-align:center;padding:60px;"><div class="spinner" style="margin:0 auto 20px;"></div><p class="text-muted">Loading your quotation form...</p></div>`);
+
+  let pkg=null,sc=null;
+  // Try up to 5 times with increasing delays
+  for(let i=1;i<=5;i++){
+    const projects=await dbRead()||lsGet('projects')||[];
+    for(const proj of projects){
+      const p=(proj.packages||[]).find(x=>x.id===pkgId);
+      if(p){pkg=p;sc=(p.subcontractors||[]).find(x=>x.id===scId);break;}
+    }
+    if(pkg&&sc)break;
+    if(i<5){
+      setH(`<div style="text-align:center;padding:60px;"><div class="spinner" style="margin:0 auto 20px;"></div><p class="text-muted">Loading... (${i}/5)<br><small style="font-size:10px;color:#bbb;">Firebase connecting...</small></p></div>`);
+      await new Promise(r=>setTimeout(r,i*1500));
+    }
+  }
+
+  if(!pkg||!sc){
+    setH(`<div class="card" style="text-align:center;padding:48px;max-width:480px;margin:40px auto;">
+      <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+      <h3 style="color:var(--danger);margin-bottom:12px;">Could Not Load Form</h3>
+      <p class="text-muted" style="font-size:12px;margin-bottom:20px;line-height:1.8;">
+        The form could not be loaded. This is usually a temporary issue.<br><br>
+        <strong>Important:</strong> For the subcontractor link to work, the Firebase project must have public Firestore rules set:<br>
+        <code style="font-size:10px;background:#f3f4f6;padding:2px 6px;border-radius:3px;">allow read, write: if true;</code>
+      </p>
+      <button class="btn btn-primary" onclick="location.reload()" style="min-width:160px;">🔄 Try Again</button>
+      <p style="font-size:9px;color:#bbb;margin-top:14px;">pkg:${pkgId.slice(-8)} sc:${scId.slice(-8)}</p>
+    </div>`);
+    return;
+  }
+
+  document.getElementById('ss_title').textContent=pkg.name;
+  document.getElementById('ss_sub').textContent=`${pkg.ref||''} · ${pkg.rev||'REV-0'}`;
+  renderSubForm(pkg,sc,pkgId,scId);
+}
+
+function renderSubForm(pkg,sc,pkgId,scId,forceShow){
+  const sub=(pkg.submissions||{})[sc.id]||{};
+  const hist=sub.revHistory||[];
+  if(!hist.length&&sub.rev0&&sub.rev0.length) hist.push({revNum:0,items:sub.rev0,info:sub.r0info||{},terms:sub.r0terms||{},at:0});
+  const nextRev=hist.length;
+  const latest=hist.length?hist[hist.length-1]:null;
+  const locked=sub.rev0Locked||false;
+  const waiting=hist.length>0&&!locked&&!forceShow;
+
+  // Try to restore draft
+  const draftKey=`sc_draft_${pkgId}_${scId}`;
+  let draft=null;try{draft=JSON.parse(localStorage.getItem(draftKey)||'null');}catch{}
+
+  let html='';
+
+  if(hist.length>0){
+    html+=`<div class="card" style="margin-bottom:12px;">
+      <p style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px;">📋 Submission History</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${hist.map((rv,i)=>`<span class="badge bk">Rev ${i}: ${rv.info?.qref||'—'} · ${rv.info?.qdate||''}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  if(waiting){
+    html+=`<div class="card" style="background:#fffbeb;text-align:center;padding:28px;margin-bottom:12px;">
+      <div style="font-size:36px;margin-bottom:8px;">⏳</div>
+      <h3 style="color:var(--warn);margin-bottom:8px;">Rev ${nextRev-1} Submitted — Awaiting Review</h3>
+      <p style="font-size:12px;color:var(--muted);max-width:420px;margin:0 auto 16px;">Your quotation has been received. You can submit updated prices at any time.</p>
+      <button class="btn btn-outline btn-sm" onclick="renderSubForm(${JSON.stringify(pkg).replace(/"/g,'&quot;')},${JSON.stringify(sc).replace(/"/g,'&quot;')},'${pkgId}','${scId}',true)">✏️ Submit Updated Prices</button>
+    </div>`;
+    document.getElementById('ss_body').innerHTML=html;
+    return;
+  }
+
+  if(nextRev>0) html+=`<div class="card" style="background:#fffbeb;margin-bottom:12px;"><p style="font-size:12px;font-weight:700;color:var(--warn);">📝 Rev ${nextRev} — Previous prices pre-filled. Update only what changed.</p></div>`;
+  if(draft) html+=`<div class="card" style="background:#f0fff4;margin-bottom:12px;"><p style="font-size:12px;font-weight:700;color:var(--success);">✅ Draft restored from last save. Review and submit.</p></div>`;
+
+  const pi=draft?.info||latest?.info||{},pt=draft?.terms||latest?.terms||{};
+  html+=`<div class="card" style="background:#f0f4ff;margin-bottom:12px;">
+    <div class="flex ic gap2 mb2"><span class="step-badge">1</span><span class="slabel" style="margin:0;">Company & Quotation Details</span></div>
+    <div class="form-row cols2"><div><label>Company Name *</label><input id="sp_co" value="${esc(sc.company)}"></div><div><label>Contact Person</label><input id="sp_ct" value="${esc(sc.contact||'')}"></div></div>
+    <div class="form-row cols2"><div><label>Mobile</label><input id="sp_mob" value="${esc(sc.mobile||'')}"></div><div><label>Email</label><input id="sp_em" value="${esc(sc.email||'')}"></div></div>
+    <div class="form-row cols3">
+      <div><label>Quotation Reference *</label><input id="sp_ref" value="${esc(pi.qref||'')}" placeholder="QTN/2026/001/R0"></div>
+      <div><label>Date</label><input type="date" id="sp_dt" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div><label>Contract Type</label><select id="sp_ct2"><option ${(pi.ctype||'Lumpsum')==='Lumpsum'?'selected':''}>Lumpsum</option><option ${(pi.ctype||'')==='Remeasureable'?'selected':''}>Remeasureable</option></select></div>
+    </div>
+  </div>`;
+
+  const boqRows=pkg.boqRows||[];
+  const draftItems=draft?.items||[];
+  const extraItems=draft?.extraItems||latest?.extraItems||[];
+
+  html+=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px;">
+    <div style="background:var(--navy2);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="color:#fff;font-size:12px;font-weight:700;"><span class="step-badge" style="margin-right:8px;">2</span>BOQ Line Items — Rev ${nextRev}</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-xs" onclick="scDlTemplate()" style="color:#fff;border-color:#fff;">⬇ Template</button>
+        <label class="btn btn-ghost btn-xs" style="color:#fff;border-color:#fff;cursor:pointer;margin:0;">⬆ Import<input type="file" accept=".xlsx,.xls" class="hidden" onchange="scImportXL(event,'${pkgId}','${scId}')"></label>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table id="scBoqTable">
+      <thead><tr>
+        <th style="width:30px;">#</th><th>Description</th><th style="width:55px;">Unit</th>
+        <th style="width:70px;">BOQ Qty</th><th style="width:80px;">Your Qty</th>
+        <th style="width:92px;">Rate (AED)</th><th style="width:110px;">Amount (AED)</th>
+        <th style="width:120px;">Option</th>
+      </tr></thead>
+      <tbody id="scBoqBody">`;
+
+  if(!boqRows.length) html+=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted);">No BOQ items. Contact procurement team.</td></tr>`;
+
+  let idx=0;
+  boqRows.forEach((row,ri)=>{
+    const isH=(row.type==='header')||(row.type==='section')||row.isHeader;
+    if(isH){html+=`<tr class="hdr-row"><td colspan="8" style="padding:8px 12px;">${esc(row.description||'')}</td></tr>`;return;}
+    idx++;
+    const pf=draftItems.find(x=>x.boqId===row.id)||latest?.items?.find(x=>x.boqId===row.id);
+    const iQ=pf?pf.qty:(row.quantity||'');
+    const iR=pf?pf.rate:'';
+    const iO=pf?(pf.option||'priced'):'priced';
+    const bold=!row.quantity&&!row.unit?'font-weight:700;':'';
+    const amtDisp=iO==='excluded'?'<span style="color:#dc2626;font-weight:700;">EXCL</span>':iO==='included'?'<span style="color:#16a34a;">INCL</span>':iO==='rateonly'?'<span style="color:#7c3aed;font-size:10px;">Rate Only</span>':pf&&pf.rate?fmt((parseFloat(pf.qty)||0)*(parseFloat(pf.rate)||0)):'-';
+    html+=`<tr id="sr_${ri}">
+      <td>${idx}</td><td style="${bold}">${esc(row.description||'')}</td><td>${esc(row.unit||'')}</td>
+      <td class="num">${row.quantity||''}</td>
+      <td><input class="tbl-input" id="sq_${ri}" type="number" value="${iQ}" oninput="sCalc(${ri},${row.quantity||0})" style="width:72px;${bold}" ${iO!=='priced'&&iO!=='rateonly'?'disabled':''}></td>
+      <td><input class="tbl-input num" id="sr2_${ri}" type="number" placeholder="0.00" value="${iR}" oninput="sCalc(${ri},${row.quantity||0})" style="width:85px;" ${iO==='excluded'||iO==='included'?'disabled':''}></td>
+      <td class="num" id="sa_${ri}">${amtDisp}</td>
+      <td><select class="tbl-input" id="so_${ri}" style="width:115px;" onchange="sOpt(${ri},${row.quantity||0})">
+        <option value="priced" ${iO==='priced'?'selected':''}>Priced</option>
+        <option value="excluded" ${iO==='excluded'?'selected':''}>Excluded</option>
+        <option value="included" ${iO==='included'?'selected':''}>Included</option>
+        <option value="rateonly" ${iO==='rateonly'?'selected':''}>Rate Only</option>
+      </select></td>
+    </tr>`;
+  });
+  html+=`</tbody></table></div>
+  <div style="padding:10px 14px;border-top:1px solid #eee;background:#f8f9fa;">
+    <p style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px;">➕ Additional Items (not in BOQ)</p>
+    <div id="extraItemsWrap">`;
+
+  extraItems.forEach((ei,ei_i)=>{
+    const eiOpt=ei.option||'priced';
+    html+=`<div class="extra-item-row flex gap2 ic mb2" id="extra_${ei_i}" style="background:#fff;border:1px solid #ddd;border-radius:4px;padding:6px;flex-wrap:wrap;">
+      <input class="tbl-input" id="ei_desc_${ei_i}" value="${esc(ei.description||'')}" placeholder="Description *" style="flex:2;min-width:160px;">
+      <input class="tbl-input" id="ei_unit_${ei_i}" value="${esc(ei.unit||'')}" placeholder="Unit" style="width:56px;">
+      <input class="tbl-input" id="ei_qty_${ei_i}" type="number" value="${ei.qty||''}" placeholder="Qty" style="width:66px;" oninput="eiCalc(${ei_i})">
+      <input class="tbl-input num" id="ei_rate_${ei_i}" type="number" value="${ei.rate||''}" placeholder="Rate" style="width:88px;" oninput="eiCalc(${ei_i})" ${eiOpt==='excluded'||eiOpt==='included'?'disabled':''}>
+      <span class="num" id="ei_amt_${ei_i}" style="width:95px;font-size:11px;">${ei.qty&&ei.rate?fmt(parseFloat(ei.qty)*parseFloat(ei.rate)):'-'}</span>
+      <select class="tbl-input" id="ei_opt_${ei_i}" style="width:110px;" onchange="eiOptChange(${ei_i})">
+        <option value="priced" ${eiOpt==='priced'?'selected':''}>Priced</option>
+        <option value="excluded" ${eiOpt==='excluded'?'selected':''}>Excluded</option>
+        <option value="included" ${eiOpt==='included'?'selected':''}>Included</option>
+        <option value="rateonly" ${eiOpt==='rateonly'?'selected':''}>Rate Only</option>
+      </select>
+      <button class="btn btn-danger btn-xs" onclick="rmExtra(${ei_i})">✕</button>
+    </div>`;
+  });
+
+  html+=`</div>
+    <button class="btn btn-outline btn-sm mt2" onclick="addExtra()">+ Add Additional Item</button>
+  </div></div>`;
+
+  // Default commercial terms values
+  const defTerms={adv:'10%',advg:'SC',perf:'10%',perfg:'SC',ret:'10% (5% TOC / 5% DLP)',mos:'50%',prog:'90%',pay:'30 days from invoice',warr:'20 years',mat:'',del:'',notes:''};
+  const tv=k=>esc(pt[k]||defTerms[k]||'');
+
+  html+=`<div class="card" style="background:var(--cream);margin-bottom:12px;">
+    <div class="flex ic gap2 mb2"><span class="step-badge">3</span><span class="slabel" style="margin:0;">Commercial Terms & Conditions</span></div>
+    <div class="form-row cols3">
+      <div><label>Advance Payment %</label><input id="st_adv" value="${tv('adv')}" placeholder="10%"></div>
+      <div><label>Advance Payment Guarantee (SC/BG)</label><select id="st_advg"><option value="SC" ${(pt.advg||'SC')==='SC'?'selected':''}>SC</option><option value="BG" ${pt.advg==='BG'?'selected':''}>BG</option></select></div>
+      <div><label>Performance 10%</label><input id="st_perf" value="${tv('perf')}"></div>
+    </div>
+    <div class="form-row cols3">
+      <div><label>Performance Guarantee (SC/BG)</label><select id="st_perfg"><option value="SC" ${(pt.perfg||'SC')==='SC'?'selected':''}>SC</option><option value="BG" ${pt.perfg==='BG'?'selected':''}>BG</option></select></div>
+      <div><label>Retention 10% (5% TOC / 5% DLP)</label><input id="st_ret" value="${tv('ret')}"></div>
+      <div><label>Material on Site %</label><input id="st_mos" value="${tv('mos')}" placeholder="50%"></div>
+    </div>
+    <div class="form-row cols3">
+      <div><label>Progress Payment %</label><input id="st_prog" value="${tv('prog')}" placeholder="90%"></div>
+      <div><label>Payment Terms (days)</label><input id="st_pay" value="${tv('pay')}" placeholder="30 days from invoice"></div>
+      <div><label>Warranty</label><input id="st_warr" value="${tv('warr')}" placeholder="20 years"></div>
+    </div>
+    <div class="form-row cols2"><div><label>Proposed Material</label><input id="st_mat" value="${tv('mat')}"></div><div><label>Delivery Conditions</label><input id="st_del" value="${tv('del')}"></div></div>
+    <div><label>Remarks / Exclusions</label><textarea id="st_notes" rows="2">${tv('notes')}</textarea></div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <div class="flex ic gap2 mb2"><span class="step-badge">4</span><span class="slabel" style="margin:0;">Attach Signed Quotation <span style="color:var(--danger);">*Required to Submit</span></span></div>
+    <input type="file" id="sp_files" multiple accept=".pdf,.jpg,.png,.jpeg,.docx" onchange="fChg()">
+    <div id="sp_fl" style="margin-top:6px;font-size:11px;color:var(--success);"></div>
+    ${latest?.attachments?.length?`<p style="font-size:11px;color:var(--muted);margin-top:4px;">Previous: ${latest.attachments.join(', ')}</p>`:''}
+  </div>
+  <div class="flex jb ic" style="padding-bottom:24px;gap:10px;">
+    <div>
+      <button class="btn btn-ghost btn-sm" onclick="saveDraft('${pkgId}','${scId}')">💾 Save Draft</button>
+      <span id="draftMsg" style="font-size:11px;color:var(--muted);margin-left:8px;"></span>
+    </div>
+    <button class="btn btn-primary" id="subBtn" onclick="submitRev('${pkgId}','${scId}',${nextRev})">Submit Rev ${nextRev} ✓</button>
+  </div>`;
+
+  document.getElementById('ss_body').innerHTML=html;
+  boqRows.forEach((_,ri)=>{const o=document.getElementById('so_'+ri);if(o&&o.value!=='priced'&&o.value!=='rateonly')sOpt(ri,0,true);});
+}
+
+// Extra items helpers
+let _extraCount=0;
+function addExtra(){
+  _extraCount++;
+  const wrap=document.getElementById('extraItemsWrap');
+  if(!wrap)return;
+  const idx=Date.now();
+  const div=document.createElement('div');
+  div.className='extra-item-row flex gap2 ic mb2';
+  div.id=`extra_new_${idx}`;
+  div.style.cssText='background:#fff;border:1px solid #ddd;border-radius:4px;padding:6px;flex-wrap:wrap;';
+  div.innerHTML=`
+    <input class="tbl-input" id="ei_desc_new_${idx}" placeholder="Description *" style="flex:2;min-width:160px;">
+    <input class="tbl-input" id="ei_unit_new_${idx}" placeholder="Unit" style="width:56px;">
+    <input class="tbl-input" id="ei_qty_new_${idx}" type="number" placeholder="Qty" style="width:66px;" oninput="eiCalcNew('${idx}')">
+    <input class="tbl-input num" id="ei_rate_new_${idx}" type="number" placeholder="Rate" style="width:88px;" oninput="eiCalcNew('${idx}')">
+    <span class="num" id="ei_amt_new_${idx}" style="width:95px;font-size:11px;">-</span>
+    <select class="tbl-input" id="ei_opt_new_${idx}" style="width:110px;" onchange="eiOptChangeNew('${idx}')">
+      <option value="priced">Priced</option>
+      <option value="excluded">Excluded</option>
+      <option value="included">Included</option>
+      <option value="rateonly">Rate Only</option>
+    </select>
+    <button class="btn btn-danger btn-xs" onclick="this.closest('.extra-item-row').remove()">✕</button>`;
+  wrap.appendChild(div);
+}
+function eiCalc(i){
+  const q=parseFloat(document.getElementById('ei_qty_'+i)?.value)||0;
+  const r=parseFloat(document.getElementById('ei_rate_'+i)?.value)||0;
+  const opt=document.getElementById('ei_opt_'+i)?.value||'priced';
+  const el=document.getElementById('ei_amt_'+i);
+  if(!el)return;
+  if(opt==='excluded')el.innerHTML='<span style="color:#dc2626;font-size:10px;">EXCL</span>';
+  else if(opt==='included')el.innerHTML='<span style="color:#16a34a;font-size:10px;">INCL</span>';
+  else if(opt==='rateonly')el.innerHTML='<span style="color:#7c3aed;font-size:10px;">Rate Only</span>';
+  else el.textContent=q&&r?fmt(q*r):'-';
+}
+function eiOptChange(i){
+  const opt=document.getElementById('ei_opt_'+i)?.value||'priced';
+  const rEl=document.getElementById('ei_rate_'+i);
+  const qEl=document.getElementById('ei_qty_'+i);
+  if(opt==='excluded'||opt==='included'){if(rEl)rEl.disabled=true;if(qEl)qEl.disabled=true;}
+  else{if(rEl)rEl.disabled=false;if(qEl)qEl.disabled=false;}
+  eiCalc(i);
+}
+function eiCalcNew(i){
+  const q=parseFloat(document.getElementById('ei_qty_new_'+i)?.value)||0;
+  const r=parseFloat(document.getElementById('ei_rate_new_'+i)?.value)||0;
+  const opt=document.getElementById('ei_opt_new_'+i)?.value||'priced';
+  const el=document.getElementById('ei_amt_new_'+i);
+  if(!el)return;
+  if(opt==='excluded')el.innerHTML='<span style="color:#dc2626;font-size:10px;">EXCL</span>';
+  else if(opt==='included')el.innerHTML='<span style="color:#16a34a;font-size:10px;">INCL</span>';
+  else if(opt==='rateonly')el.innerHTML='<span style="color:#7c3aed;font-size:10px;">Rate Only</span>';
+  else el.textContent=q&&r?fmt(q*r):'-';
+}
+function eiOptChangeNew(i){
+  const opt=document.getElementById('ei_opt_new_'+i)?.value||'priced';
+  const rEl=document.getElementById('ei_rate_new_'+i);
+  const qEl=document.getElementById('ei_qty_new_'+i);
+  if(opt==='excluded'||opt==='included'){if(rEl)rEl.disabled=true;if(qEl)qEl.disabled=true;}
+  else{if(rEl)rEl.disabled=false;if(qEl)qEl.disabled=false;}
+  eiCalcNew(i);
+}
+function rmExtra(i){document.getElementById('extra_'+i)?.remove();}
+
+function collectFormData(pkg){
+  const boqRows=pkg.boqRows||[];
+  const items=[];
+  boqRows.forEach((row,ri)=>{
+    if((row.type==='header')||(row.type==='section')||row.isHeader)return;
+    const qty=document.getElementById('sq_'+ri)?.value||row.quantity||'';
+    const rate=document.getElementById('sr2_'+ri)?.value||'';
+    const opt=document.getElementById('so_'+ri)?.value||'priced';
+    let amt=opt==='excluded'?'EXCLUDED':opt==='included'?'INCLUDED':opt==='rateonly'?'RATEONLY':((parseFloat(qty)||0)*(parseFloat(rate)||0))||'';
+    items.push({boqId:row.id,description:row.description,unit:row.unit,boqQty:row.quantity,qty,rate,amount:amt,option:opt});
+  });
+
+  // Extra (existing saved)
+  const extraItems=[];
+  const wrap=document.getElementById('extraItemsWrap');
+  if(wrap){
+    // Existing saved extras
+    document.querySelectorAll('.extra-item-row[id^="extra_"]:not([id*="new"])').forEach(div=>{
+      const i=div.id.replace('extra_','');
+      const desc=document.getElementById('ei_desc_'+i)?.value||'';
+      if(!desc)return;
+      const unit=document.getElementById('ei_unit_'+i)?.value||'';
+      const qty=document.getElementById('ei_qty_'+i)?.value||'';
+      const rate=document.getElementById('ei_rate_'+i)?.value||'';
+      const opt=document.getElementById('ei_opt_'+i)?.value||'priced';
+      const amt=opt==='excluded'?'EXCLUDED':opt==='included'?'INCLUDED':opt==='rateonly'?'RATEONLY':((parseFloat(qty)||0)*(parseFloat(rate)||0));
+      extraItems.push({id:'extra_'+Date.now()+'_'+i,description:desc,unit,qty,rate,amount:amt,option:opt});
+    });
+    // New extras (dynamically added)
+    document.querySelectorAll('.extra-item-row[id^="extra_new_"]').forEach(div=>{
+      const i=div.id.replace('extra_new_','');
+      const desc=document.getElementById('ei_desc_new_'+i)?.value||'';
+      if(!desc)return;
+      const unit=document.getElementById('ei_unit_new_'+i)?.value||'';
+      const qty=document.getElementById('ei_qty_new_'+i)?.value||'';
+      const rate=document.getElementById('ei_rate_new_'+i)?.value||'';
+      const opt=document.getElementById('ei_opt_new_'+i)?.value||'priced';
+      const amt=opt==='excluded'?'EXCLUDED':opt==='included'?'INCLUDED':opt==='rateonly'?'RATEONLY':((parseFloat(qty)||0)*(parseFloat(rate)||0));
+      extraItems.push({id:'extra_new_'+Date.now()+'_'+i,description:desc,unit,qty,rate,amount:amt,option:opt});
+    });
+  }
+
+  const info={
+    qref:document.getElementById('sp_ref')?.value||'',
+    qdate:document.getElementById('sp_dt')?.value||'',
+    ctype:document.getElementById('sp_ct2')?.value||'Lumpsum',
+    company:document.getElementById('sp_co')?.value||'',
+    contact:document.getElementById('sp_ct')?.value||'',
+    mobile:document.getElementById('sp_mob')?.value||'',
+    email:document.getElementById('sp_em')?.value||''
+  };
+  const terms={
+    adv:document.getElementById('st_adv')?.value||'',advg:document.getElementById('st_advg')?.value||'',
+    perf:document.getElementById('st_perf')?.value||'',perfg:document.getElementById('st_perfg')?.value||'',
+    ret:document.getElementById('st_ret')?.value||'',mos:document.getElementById('st_mos')?.value||'',
+    prog:document.getElementById('st_prog')?.value||'',pay:document.getElementById('st_pay')?.value||'',
+    warr:document.getElementById('st_warr')?.value||'',mat:document.getElementById('st_mat')?.value||'',
+    del:document.getElementById('st_del')?.value||'',notes:document.getElementById('st_notes')?.value||''
+  };
+  return{items,extraItems,info,terms};
+}
+
+function saveDraft(pkgId,scId){
+  const pkg=S.curPkg||{boqRows:[]};
+  const fd=collectFormData(pkg);
+  const draftKey=`sc_draft_${pkgId}_${scId}`;
+  localStorage.setItem(draftKey,JSON.stringify(fd));
+  const msg=document.getElementById('draftMsg');
+  if(msg){msg.textContent='Draft saved ✓ '+new Date().toLocaleTimeString();setTimeout(()=>{msg.textContent='';},3000);}
+  toast('Draft saved ✓');
+}
+
+function scDlTemplate(){
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet([
+    ['Description','Unit','Quantity','Rate (AED)','Notes'],
+    ['Example item 1','m2',100,250,''],
+    ['Example item 2','No',5,1500,'Rate Only']
+  ]);
+  ws['!cols']=[{wch:60},{wch:10},{wch:12},{wch:14},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws,'Quotation');
+  XLSX.writeFile(wb,'BCC_Quotation_Template.xlsx');
+}
+
+function scImportXL(e,pkgId,scId){
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=ev=>{
+    const wb=XLSX.read(ev.target.result,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    // Match to existing BOQ or add as extras
+    const boqRows=(S.curPkg?.boqRows||[]).filter(r=>!r.isHeader&&r.type!=='header'&&r.type!=='section');
+    let matched=0,extras=0;
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];if(!r[0])continue;
+      const desc=(r[0]||'').toString().trim().toLowerCase();
+      const rate=parseFloat(r[3])||0;
+      const notes=(r[4]||'').toString().toLowerCase();
+      // Try to match to existing BOQ
+      const boqMatch=boqRows.findIndex(b=>b.description?.toLowerCase().includes(desc.substring(0,20))||desc.includes((b.description||'').toLowerCase().substring(0,20)));
+      if(boqMatch>=0){
+        const ri=boqMatch;
+        const rEl=document.getElementById('sr2_'+ri);
+        const qEl=document.getElementById('sq_'+ri);
+        const sEl=document.getElementById('so_'+ri);
+        if(rEl)rEl.value=rate;
+        if(qEl&&r[2])qEl.value=r[2];
+        if(sEl&&notes.includes('rate only'))sEl.value='rateonly';
+        sCalc(ri,boqRows[ri]?.quantity||0);
+        matched++;
+      } else {
+        // Add as extra item
+        addExtra();
+        const wrap=document.getElementById('extraItemsWrap');
+        const newItems=wrap?.querySelectorAll('[id^="extra_new_"]');
+        if(newItems&&newItems.length){
+          const last=newItems[newItems.length-1];
+          const idx=last.id.replace('extra_new_','');
+          const dd=document.getElementById('ei_desc_new_'+idx);if(dd)dd.value=r[0];
+          const du=document.getElementById('ei_unit_new_'+idx);if(du)du.value=r[1]||'';
+          const dq=document.getElementById('ei_qty_new_'+idx);if(dq)dq.value=r[2]||'';
+          const dr=document.getElementById('ei_rate_new_'+idx);if(dr)dr.value=rate;
+          eiCalcNew(idx);
+          extras++;
+        }
+      }
+    }
+    toast(`Imported: ${matched} BOQ items matched, ${extras} additional items added`,'success');
+    e.target.value='';
+  };
+  rd.readAsArrayBuffer(f);
+}
+
+function sCalc(ri,bq){
+  const q=parseFloat(document.getElementById('sq_'+ri)?.value)||0;
+  const r=parseFloat(document.getElementById('sr2_'+ri)?.value)||0;
+  const a=document.getElementById('sa_'+ri);
+  if(!a)return;
+  const o=document.getElementById('so_'+ri)?.value;
+  if(o==='excluded'){a.innerHTML='<span style="color:#dc2626;font-weight:700;">EXCL</span>';return;}
+  if(o==='included'){a.innerHTML='<span style="color:#16a34a;">INCL</span>';return;}
+  if(o==='rateonly'){a.innerHTML='<span style="color:#7c3aed;font-size:10px;">Rate Only</span>';return;}
+  a.textContent=q&&r?fmt(q*r):'-';
+}
+function sOpt(ri,bq,silent){
+  const o=document.getElementById('so_'+ri)?.value;
+  const rEl=document.getElementById('sr2_'+ri),qEl=document.getElementById('sq_'+ri);
+  if(!o)return;
+  if(o==='excluded'||o==='included'){
+    if(rEl)rEl.disabled=true;if(qEl)qEl.disabled=true;
+    const a=document.getElementById('sa_'+ri);
+    if(a)a.innerHTML=o==='excluded'?'<span style="color:#dc2626;font-weight:700;">EXCL</span>':'<span style="color:#16a34a;">INCL</span>';
+  } else if(o==='rateonly'){
+    if(rEl)rEl.disabled=false;if(qEl)qEl.disabled=false;
+    const a=document.getElementById('sa_'+ri);
+    if(a)a.innerHTML='<span style="color:#7c3aed;font-size:10px;">Rate Only</span>';
+  } else {
+    if(rEl)rEl.disabled=false;if(qEl)qEl.disabled=false;
+    if(!silent)sCalc(ri,bq);
+  }
+}
+function fChg(){const f=document.getElementById('sp_files')?.files,el=document.getElementById('sp_fl');if(el)el.textContent=f&&f.length?Array.from(f).map(x=>x.name).join(', '):''}
+
+async function submitRev(pkgId,scId,revNum){
+  const btn=document.getElementById('subBtn');
+  if(btn){btn.disabled=true;btn.textContent='Submitting...';}
+  const files=document.getElementById('sp_files')?.files;
+  if(!files||!files.length){toast('Please attach your signed quotation','error');if(btn){btn.disabled=false;btn.textContent=`Submit Rev ${revNum} ✓`;}return;}
+  const qref=(document.getElementById('sp_ref')?.value||'').trim();
+  if(!qref){toast('Quotation reference is required','error');if(btn){btn.disabled=false;btn.textContent=`Submit Rev ${revNum} ✓`;}return;}
+  if(btn)btn.textContent='Saving...';
+
+  let projects=await dbRead()||lsGet('projects')||[];
+  let targetPkg=null;
+  for(const proj of projects){const p=(proj.packages||[]).find(x=>x.id===pkgId);if(p){targetPkg=p;break;}}
+  if(!targetPkg){toast('Package not found','error');if(btn)btn.disabled=false;return;}
+
+  // Use collectFormData to get items + extra items
+  const fd=collectFormData(targetPkg);
+  const {items,extraItems,info,terms}=fd;
+  info.qref=qref;
+  const attachments=Array.from(files).map(f=>f.name);
+
+  if(!targetPkg.submissions)targetPkg.submissions={};
+  if(!targetPkg.submissions[scId])targetPkg.submissions[scId]={};
+  const sub=targetPkg.submissions[scId];
+  if(!sub.revHistory)sub.revHistory=[];
+  sub.revHistory.push({revNum,items,extraItems,info,terms,attachments,at:Date.now()});
+  sub.rev0=items;sub.r0info=info;sub.r0terms=terms;
+  if(revNum>0){sub.rev1=items;sub.r1info=info;sub.r1terms=terms;}
+
+  // Register extra items in package BOQ (marked as SC-added)
+  if(extraItems.length){
+    if(!targetPkg.scAddedRows)targetPkg.scAddedRows=[];
+    extraItems.forEach(ei=>{
+      const exists=targetPkg.scAddedRows.find(r=>r.id===ei.id);
+      if(!exists)targetPkg.scAddedRows.push({...ei,addedByScId:scId,addedByScName:sc?.company||''});
+    });
+  }
+
+  lsSet('projects',projects);
+  const saved=await dbWrite(projects);
+  // Clear draft
+  try{localStorage.removeItem(`sc_draft_${pkgId}_${scId}`);}catch{}
+
+  document.getElementById('ss_body').innerHTML=`
+    <div class="card" style="text-align:center;padding:48px;max-width:560px;margin:40px auto;">
+      <div style="font-size:56px;margin-bottom:16px;">${saved?'✅':'⚠️'}</div>
+      <h2 style="color:${saved?'var(--success)':'var(--warn)'};margin-bottom:8px;">Rev ${revNum} ${saved?'Submitted Successfully!':'Saved Locally'}</h2>
+      <p class="text-muted" style="font-size:13px;margin-bottom:20px;">Ref: <strong>${info.qref}</strong> · ${info.qdate}<br>Attachments: ${attachments.join(', ')}</p>
+      ${extraItems.length?`<p style="font-size:11px;color:var(--muted);margin-bottom:12px;">${extraItems.length} additional item(s) added to comparison.</p>`:''}
+      <div style="background:#f0fff4;border:1px solid #bbf7d0;border-radius:6px;padding:14px;font-size:12px;color:#065f46;margin-bottom:20px;">
+        ${saved?'Your quotation has been received by the BCC procurement team.':'Your data was saved locally.'}<br>
+        You can return to this link to submit updated prices if needed.
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="location.reload()">Submit Another Revision</button>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  ADMIN — TABS
+// ════════════════════════════════════════════════════════════════════
+function showTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('tab-'+name+'-content').classList.add('active');
+  if(name==='boq')renderBOQ();
+  if(name==='comparison')renderComp();
+  if(name==='summary')renderSum();
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  PROJECTS
+// ════════════════════════════════════════════════════════════════════
+function openProjModal(id=null){
+  S._eProjId=id;
+  const p=id?S.projects.find(x=>x.id===id):null;
+  document.getElementById('projModalTitle').textContent=id?'Edit Project':'New Project';
+  ['pm_name','pm_code','pm_client','pm_cons','pm_loc'].forEach(k=>{document.getElementById(k).value=p?p[k.replace('pm_','')]||'':''});
+  openModal('projModal');
+}
+async function saveProj(){
+  const name=v('pm_name');if(!name){toast('Name required','error');return;}
+  const data={id:S._eProjId||'proj_'+Date.now(),name,code:v('pm_code'),client:v('pm_client'),cons:v('pm_cons'),loc:v('pm_loc'),packages:[],createdAt:Date.now()};
+  if(S._eProjId){const i=S.projects.findIndex(x=>x.id===S._eProjId);if(i>=0){data.packages=S.projects[i].packages||[];S.projects[i]=data;}}
+  else S.projects.push(data);
+  await persist();closeModal('projModal');renderProjs();toast('Project saved ✓');
+}
+function delProj(id){
+  if(!confirm('Delete this project and all packages?'))return;
+  S.projects=S.projects.filter(x=>x.id!==id);
+  if(S.curProj?.id===id){S.curProj=null;S.curPkg=null;}
+  persist();renderProjs();
+}
+function selProj(id){
+  S.curProj=S.projects.find(x=>x.id===id);
+  renderProjs();renderPkgs();
+}
+function renderProjs(){
+  const el=document.getElementById('projList');
+  if(!S.projects.length){el.innerHTML=`<div class="card" style="text-align:center;padding:32px;color:var(--muted);">No projects yet. Create your first project.</div>`;document.getElementById('pkgSection').classList.add('hidden');return;}
+  el.innerHTML=S.projects.map(p=>`
+    <div class="proj-card ${S.curProj?.id===p.id?'sel':''}" onclick="selProj('${p.id}')">
+      <div class="proj-icon">${p.name.charAt(0)}</div>
+      <div style="flex:1;"><p style="font-size:13px;font-weight:700;color:var(--navy);">${p.name}</p><p style="font-size:11px;color:var(--muted);">${[p.client,p.cons,p.loc].filter(Boolean).join(' · ')}</p></div>
+      <span class="badge bn">${(p.packages||[]).length} pkg</span>
+      <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();openProjModal('${p.id}')">Edit</button>
+      <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();delProj('${p.id}')">Delete</button>
+    </div>`).join('');
+  const sec=document.getElementById('pkgSection');
+  if(S.curProj){sec.classList.remove('hidden');document.getElementById('pkgProjTitle').textContent=S.curProj.name;}
+  else sec.classList.add('hidden');
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  PACKAGES
+// ════════════════════════════════════════════════════════════════════
+function openPkgModal(id=null){
+  if(!S.curProj){toast('Select a project first','warn');return;}
+  S._ePkgId=id;
+  const p=id?S.curProj.packages?.find(x=>x.id===id):null;
+  document.getElementById('pkgModalTitle').textContent=id?'Edit Package':'New Package';
+  document.getElementById('pkm_name').value=p?.name||'';
+  document.getElementById('pkm_scope').value=p?.scope||'';
+  document.getElementById('pkm_ref').value=p?.ref||'';
+  document.getElementById('pkm_date').value=p?.date||new Date().toISOString().slice(0,10);
+  document.getElementById('pkm_rev').value=p?.rev||'REV-0';
+  document.getElementById('pkm_pw').value='';
+  document.getElementById('pkm_pw2').value='';
+  document.getElementById('pkm_hint').textContent=p?.password?'Password is set. Leave blank to keep unchanged.':'';
+  openModal('pkgModal');
+}
+async function savePkg(){
+  if(!S.curProj)return;
+  const name=v('pkm_name');if(!name){toast('Name required','error');return;}
+  const pw=v('pkm_pw'),pw2=v('pkm_pw2');
+  if(pw&&pw!==pw2){toast('Passwords do not match','error');return;}
+  const ex=S._ePkgId?S.curProj.packages?.find(x=>x.id===S._ePkgId):null;
+  const fp=pw||ex?.password||'';
+  if(!fp){toast('Password is required','error');return;}
+  const data={id:S._ePkgId||'pkg_'+Date.now(),name,scope:v('pkm_scope'),ref:v('pkm_ref'),date:v('pkm_date'),rev:v('pkm_rev')||'REV-0',password:fp,boqRows:ex?.boqRows||[],subcontractors:ex?.subcontractors||[],submissions:ex?.submissions||{},adminFields:ex?.adminFields||{},summaryNotes:ex?.summaryNotes||'',createdAt:ex?.createdAt||Date.now()};
+  if(!S.curProj.packages)S.curProj.packages=[];
+  if(S._ePkgId){const i=S.curProj.packages.findIndex(x=>x.id===S._ePkgId);if(i>=0)S.curProj.packages[i]=data;}
+  else S.curProj.packages.push(data);
+  await persist();closeModal('pkgModal');renderPkgs();toast('Package saved ✓');
+}
+function delPkg(projId,pkgId){
+  if(!confirm('Delete this package?'))return;
+  const proj=S.projects.find(x=>x.id===projId);
+  if(proj)proj.packages=(proj.packages||[]).filter(x=>x.id!==pkgId);
+  if(S.curPkg?.id===pkgId){S.curPkg=null;S.boqRows=[];}
+  persist();renderPkgs();
+}
+function openPkg(projId,pkgId){
+  S.curProj=S.projects.find(x=>x.id===projId);
+  S.curPkg=S.curProj?.packages?.find(x=>x.id===pkgId);
+  if(!S.curPkg)return;
+  S.boqRows=JSON.parse(JSON.stringify(S.curPkg.boqRows||[]));
+  S.scs=JSON.parse(JSON.stringify(S.curPkg.subcontractors||[]));
+  S.subs=JSON.parse(JSON.stringify(S.curPkg.submissions||{}));
+  S.adminFields=JSON.parse(JSON.stringify(S.curPkg.adminFields||{mfr:'',specs:'',inclNote:''}));
+  S.compUnlocked=false;S.sumUnlocked=false;
+  document.getElementById('hdrPkg').textContent=`${S.curProj.name} / ${S.curPkg.name}`;
+  document.getElementById('compLock').classList.remove('hidden');
+  document.getElementById('compContent').classList.add('hidden');
+  document.getElementById('sumLock').classList.remove('hidden');
+  document.getElementById('sumContent').classList.add('hidden');
+  ['compPw','sumPw'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  renderBOQ();showTab('boq');toast(`Loaded: ${S.curPkg.name}`);
+}
+function renderPkgs(){
+  const el=document.getElementById('pkgList');
+  if(!S.curProj){el.innerHTML='';return;}
+  const pkgs=S.curProj.packages||[];
+  if(!pkgs.length){el.innerHTML=`<div class="card" style="text-align:center;padding:24px;color:var(--muted);">No packages yet.</div>`;return;}
+  el.innerHTML=pkgs.map(pkg=>{
+    const revC=Object.values(pkg.submissions||{}).reduce((a,s)=>{const h=s.revHistory||[];return a+(h.length||(s.rev0?1:0));},0);
+    return`<div class="proj-card" onclick="openPkg('${S.curProj.id}','${pkg.id}')">
+      <div class="proj-icon" style="background:var(--gold);font-size:11px;">📋</div>
+      <div style="flex:1;"><p style="font-size:13px;font-weight:700;color:var(--navy);">${pkg.name} <span class="badge bg">${pkg.rev}</span></p><p style="font-size:11px;color:var(--muted);">${[pkg.ref,pkg.date,pkg.scope].filter(Boolean).join(' · ')}</p></div>
+      <span class="badge bn">${(pkg.boqRows||[]).length} items</span>
+      <span class="badge bk">${(pkg.subcontractors||[]).length} SC · ${revC} revisions</span>
+      <button class="btn btn-gold btn-xs" onclick="event.stopPropagation();openPkg('${S.curProj.id}','${pkg.id}')">Open</button>
+      <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();openPkgModal('${pkg.id}')">Edit</button>
+      <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();delPkg('${S.curProj.id}','${pkg.id}')">Del</button>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  BOQ BUILDER
+// ════════════════════════════════════════════════════════════════════
+function renderBOQ(){
+  if(!S.curPkg){document.getElementById('boqEmpty').classList.remove('hidden');document.getElementById('boqMain').classList.add('hidden');return;}
+  document.getElementById('boqEmpty').classList.add('hidden');document.getElementById('boqMain').classList.remove('hidden');
+  document.getElementById('boqTitle').textContent=S.curPkg.name;
+  document.getElementById('boqRef').textContent=`${S.curPkg.ref||''} · ${S.curPkg.rev}`;
+  document.getElementById('af_mfr').value=S.adminFields.mfr||'';
+  document.getElementById('af_specs').value=S.adminFields.specs||'';
+  document.getElementById('af_incl').value=S.adminFields.inclNote||'';
+  renderBOQTable();
+}
+function renderBOQTable(){
+  const tb=document.getElementById('boqBody');
+  if(!S.boqRows.length){tb.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--muted);">No items. Add rows or import Excel.</td></tr>`;return;}
+  tb.innerHTML=S.boqRows.map((row,i)=>{
+    const isH=(row.type==='header')||(row.type==='section')||row.isHeader;
+    const qty=parseFloat(row.quantity)||0,rate=parseFloat(row.budgetRate)||0;
+    const amt=qty&&rate?fmt(qty*rate):'';
+    const bold=!isH&&!row.quantity&&!row.unit?'font-weight:700;':'';
+    const hBg=isH?'background:#dbeafe;':'';
+    const hCol=isH?'color:#1e3a8a;font-weight:700;':'';
+    return`<tr style="${hBg}" draggable="true" ondragstart="dS(${i})" ondragover="dO(event,${i})" ondrop="dD(${i})" ondragleave="dL(${i})">
+      <td class="drag-handle">⠿</td><td style="${hCol}">${i+1}</td>
+      <td><input class="tbl-input" style="${hBg}${hCol}${bold}" value="${esc(row.description||'')}" onchange="rUpd(${i},'description',this.value)" placeholder="${isH?'Header title...':'Item description...'}"></td>
+      <td>${isH?'':`<input class="tbl-input" style="width:50px;" value="${esc(row.unit||'')}" onchange="rUpd(${i},'unit',this.value)">`}</td>
+      <td>${isH?'':`<input class="tbl-input num" type="number" value="${row.quantity||''}" onchange="rUpd(${i},'quantity',this.value)" style="width:70px;">`}</td>
+      <td>${isH?'':`<input class="tbl-input num" type="number" value="${row.budgetRate||''}" onchange="rUpd(${i},'budgetRate',this.value)" style="width:80px;">`}</td>
+      <td class="num" style="font-size:11px;color:#1a5276;">${isH?'':amt?amt:row.budgetNote==='included'?'<span class="badge bk" style="font-size:9px;">Incl</span>':''}</td>
+      <td>${isH?'':`<select class="tbl-input" style="width:74px;" onchange="rUpd(${i},'budgetNote',this.value)"><option value="" ${!row.budgetNote?'selected':''}>—</option><option value="included" ${row.budgetNote==='included'?'selected':''}>Included</option><option value="provisional" ${row.budgetNote==='provisional'?'selected':''}>Provisional</option></select>`}</td>
+      <td style="text-align:center;"><input type="checkbox" ${isH?'checked':''} onchange="tHdr(${i},this.checked)" style="width:14px;height:14px;cursor:pointer;accent-color:#1e3a8a;" title="Mark as section header"></td>
+      <td><button class="btn btn-danger btn-xs" onclick="dRow(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function rUpd(i,f,v2){S.boqRows[i][f]=v2;if(['quantity','budgetRate','budgetNote'].includes(f))renderBOQTable();}
+function tHdr(i,c){S.boqRows[i].isHeader=c;S.boqRows[i].type=c?'header':'item';renderBOQTable();}
+function addRow(type){
+  S.boqRows.push({id:'r'+Date.now(),type,isHeader:type==='header',description:'',unit:'',quantity:'',budgetRate:'',budgetNote:''});
+  renderBOQTable();
+  setTimeout(()=>{const rows=document.querySelectorAll('#boqBody tr');if(rows.length)rows[rows.length-1].scrollIntoView({behavior:'smooth'});},50);
+}
+function dRow(i){S.boqRows.splice(i,1);renderBOQTable();}
+function dS(i){S.dragIdx=i;}
+function dO(e,i){e.preventDefault();document.querySelectorAll('#boqBody tr').forEach((r,ri)=>r.classList.toggle('drag-over',ri===i&&i!==S.dragIdx));}
+function dL(i){document.querySelectorAll('#boqBody tr')[i]?.classList.remove('drag-over');}
+function dD(i){document.querySelectorAll('#boqBody tr').forEach(r=>r.classList.remove('drag-over'));if(S.dragIdx===null||S.dragIdx===i)return;const[m]=S.boqRows.splice(S.dragIdx,1);S.boqRows.splice(i,0,m);S.dragIdx=null;renderBOQTable();}
+async function saveBOQ(){
+  if(!S.curPkg)return;
+  S.curPkg.boqRows=JSON.parse(JSON.stringify(S.boqRows));
+  S.curPkg.adminFields=JSON.parse(JSON.stringify(S.adminFields));
+  await persist();toast('BOQ saved ✓');
+}
+function dlTemplate(){
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet([['#','Description','Unit','Quantity','Budget Rate'],[1,'CIVIL WORKS (add isHeader=true to make this a header)','-','-','-'],[2,'Supply SBS membrane 4mm thick','m2',618,305],[3,'Pool tile installation','m2',643,417]]);
+  ws['!cols']=[{wch:5},{wch:60},{wch:8},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws,'BOQ');
+  XLSX.writeFile(wb,'BOQ_Template.xlsx');
+}
+function importXL(e){
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=(ev)=>{
+    const wb=XLSX.read(ev.target.result,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+    const newRows=[];
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];if(!r[1])continue;
+      const desc=(r[1]||'').toString();
+      const isH=!r[2]&&!r[3];
+      newRows.push({id:'r'+Date.now()+'_'+i,type:isH?'header':'item',isHeader:isH,description:desc,unit:(r[2]||'').toString(),quantity:r[3]||'',budgetRate:r[4]||'',budgetNote:''});
+    }
+    S.boqRows=newRows;renderBOQTable();toast(`Imported ${newRows.length} rows ✓`);e.target.value='';
+  };
+  rd.readAsArrayBuffer(f);
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  SUBCONTRACTORS
+// ════════════════════════════════════════════════════════════════════
+function openSCModal(){if(!S.curPkg){toast('Save BOQ first','warn');return;}renderSCList();openModal('scModal');}
+function renderSCList(){
+  const el=document.getElementById('scListWrap');
+  if(!S.scs.length){el.innerHTML=`<p class="text-muted" style="font-size:12px;">No subcontractors yet.</p>`;return;}
+  el.innerHTML=S.scs.map(sc=>{
+    const sub=S.subs[sc.id]||{};
+    const hist=sub.revHistory||[];
+    const hasRev=hist.length>0||(sub.rev0&&sub.rev0.length>0);
+    const locked=sub.rev0Locked||false;
+    const revC=hist.length||(hasRev?1:0);
+    const latestRef=hist.length?hist[hist.length-1].info?.qref:(sub.r0info?.qref||'');
+    const dot=!hasRev?'#d1d5db':locked?'#16a34a':'#3b82f6';
+    const link=`${window.location.href.split('?')[0]}?pkg=${S.curPkg.id}&sc=${sc.id}`;
+    return`<div style="border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:8px;background:${locked?'#f0fff4':'#fff'};">
+      <div class="flex ic gap2 mb2">
+        <span style="width:10px;height:10px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0;"></span>
+        <div style="flex:1;"><strong style="font-size:13px;">${esc(sc.company)}</strong><span style="font-size:11px;color:var(--muted);margin-left:8px;">${[sc.contact,sc.mobile,sc.email].filter(Boolean).join(' · ')}</span></div>
+        ${hasRev?`<span class="badge bk" style="font-size:9px;">${revC} revision(s) · ${latestRef}</span>`:'<span class="badge gray" style="font-size:9px;">No quote</span>'}
+      </div>
+      <div class="flex gap2 ic" style="flex-wrap:wrap;">
+        ${!hasRev?`<p style="flex:1;font-size:11px;color:#1e40af;background:#eff6ff;padding:5px 8px;border-radius:4px;">📤 Copy & send this link to the subcontractor to fill prices.</p>`:''}
+        ${hasRev&&!locked?`<p style="flex:1;font-size:11px;color:#92400e;background:#fffbeb;padding:5px 8px;border-radius:4px;">✅ ${revC} revision(s) received. Click Lock to formally request a revised price.</p><button class="btn btn-warn btn-xs" onclick="lockSC('${sc.id}')">🔒 Lock & Request Revision</button>`:''}
+        ${locked?`<p style="flex:1;font-size:11px;color:#065f46;background:#f0fff4;padding:5px 8px;border-radius:4px;">🔒 Locked — SC can submit revision via same link.</p><button class="btn btn-ghost btn-xs" onclick="unlockSC('${sc.id}')">🔓 Unlock</button>`:''}
+        <button class="btn btn-outline btn-xs" onclick="copyLink('${sc.id}')">📋 Copy Link</button>
+        <button class="btn btn-outline btn-xs" onclick="previewSC('${sc.id}')">👁 Preview</button>
+        <button class="btn btn-danger btn-xs" onclick="removeSC('${sc.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function addSC(){
+  const co=v('sc_co');if(!co){toast('Company name required','error');return;}
+  const sc={id:'sc_'+Date.now(),company:co,contact:v('sc_ct'),mobile:v('sc_mob'),email:v('sc_em'),addedAt:Date.now()};
+  S.scs.push(sc);
+  S.curPkg.subcontractors=JSON.parse(JSON.stringify(S.scs));
+  await persist();
+  ['sc_co','sc_ct','sc_mob','sc_em'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  renderSCList();toast('Subcontractor added ✓');
+}
+async function removeSC(id){if(!confirm('Remove?'))return;S.scs=S.scs.filter(x=>x.id!==id);S.curPkg.subcontractors=JSON.parse(JSON.stringify(S.scs));await persist();renderSCList();}
+async function lockSC(id){if(!S.subs[id])S.subs[id]={};S.subs[id].rev0Locked=true;S.curPkg.submissions=JSON.parse(JSON.stringify(S.subs));await persist();renderSCList();toast('Locked ✓ SC can now submit revised price','success');}
+async function unlockSC(id){if(!S.subs[id])return;S.subs[id].rev0Locked=false;S.curPkg.submissions=JSON.parse(JSON.stringify(S.subs));await persist();renderSCList();toast('Unlocked');}
+function copyLink(scId){
+  const url=`${window.location.href.split('?')[0]}?pkg=${S.curPkg.id}&sc=${scId}`;
+  navigator.clipboard?.writeText(url).then(()=>toast('Link copied ✓')).catch(()=>prompt('Copy this link:',url));
+}
+function previewSC(scId){
+  const sc=S.scs.find(x=>x.id===scId);if(!sc)return;
+  closeModal('scModal');
+  document.getElementById('scPreviewTitle').textContent=`Preview — ${sc.company}`;
+  const wrap=document.getElementById('scPreviewBody');
+  wrap.innerHTML=`<div style="background:#1e3a8a;color:#fff;padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:12px;"><strong>👁 PREVIEW MODE</strong> — Exactly what the subcontractor sees when they open their link.</div>`;
+  const tmpPkg=JSON.parse(JSON.stringify(S.curPkg));
+  const tmpSc=JSON.parse(JSON.stringify(sc));
+  const prevBody=document.getElementById('ss_body');
+  const prevSubApp=document.getElementById('subApp');
+  // Render into a temp container
+  const tmp=document.createElement('div');
+  tmp.id='ss_body_tmp';
+  // We'll render a read-only preview
+  const sub=(tmpPkg.submissions||{})[sc.id]||{};
+  const hist=sub.revHistory||[];
+  if(!hist.length&&sub.rev0&&sub.rev0.length) hist.push({revNum:0,items:sub.rev0,info:sub.r0info||{},terms:sub.r0terms||{},at:0});
+  const nextRev=hist.length;
+  const latest=hist.length?hist[hist.length-1]:null;
+  let html=`<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">This SC would see Rev ${nextRev} form. ${hist.length} previous revision(s).</div>`;
+  const boqRows=tmpPkg.boqRows||[];
+  if(!boqRows.length){html+=`<p class="text-muted" style="text-align:center;padding:24px;">No BOQ items in this package.</p>`;} 
+  else {
+    html+=`<div class="card" style="padding:0;overflow:hidden;"><div style="background:var(--navy2);padding:8px 12px;"><span style="color:#fff;font-size:12px;font-weight:700;">BOQ Line Items — Rev ${nextRev}</span></div><div class="tbl-wrap"><table><thead><tr><th>#</th><th>Description</th><th>Unit</th><th>BOQ Qty</th><th>Your Qty</th><th>Rate (AED)</th><th>Amount</th><th>Option</th></tr></thead><tbody>`;
+    let idx=0;
+    boqRows.forEach(row=>{
+      const isH=(row.type==='header')||(row.type==='section')||row.isHeader;
+      if(isH){html+=`<tr class="hdr-row"><td colspan="8" style="padding:8px 12px;">${esc(row.description||'')}</td></tr>`;return;}
+      idx++;
+      const pf=latest?.items?.find(x=>x.boqId===row.id);
+      const bold=!row.quantity&&!row.unit?'font-weight:700;':'';
+      html+=`<tr><td>${idx}</td><td style="${bold}">${esc(row.description||'')}</td><td>${esc(row.unit||'')}</td><td class="num">${row.quantity||''}</td>
+        <td><input class="tbl-input" type="number" value="${pf?pf.qty:row.quantity||''}" style="width:70px;" readonly></td>
+        <td><input class="tbl-input" type="number" value="${pf?pf.rate:''}" style="width:85px;" readonly></td>
+        <td class="num">${pf&&pf.rate?fmt((parseFloat(pf.qty)||0)*(parseFloat(pf.rate)||0)):'-'}</td>
+        <td><select class="tbl-input" style="width:100px;" disabled><option value="${pf?pf.option:'priced'}">${pf?pf.option:'Priced'}</option></select></td></tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  }
+  wrap.innerHTML+=html;
+  openModal('scPreviewModal');
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  COMPARISON
+// ════════════════════════════════════════════════════════════════════
+function unlockComp(){
+  const pw=v('compPw');if(!S.curPkg){toast('Select a package first','warn');return;}
+  if(pw===S.curPkg.password){S.compUnlocked=true;document.getElementById('compLock').classList.add('hidden');document.getElementById('compContent').classList.remove('hidden');renderComp();}
+  else{toast('Incorrect password','error');document.getElementById('compPw').value='';}
+}
+function renderComp(){
+  if(!S.compUnlocked)return;
+  const noPkg=document.getElementById('compNoPkg'),main=document.getElementById('compMain');
+  if(!S.curPkg){noPkg.classList.remove('hidden');main.classList.add('hidden');return;}
+  noPkg.classList.add('hidden');main.classList.remove('hidden');
+  const pkg=S.curPkg,proj=S.curProj;
+  document.getElementById('compTitle').textContent=`COMPARISON STATEMENT – ${pkg.name.toUpperCase()} (SUPPLY & INSTALLATION)`;
+  document.getElementById('compSub').textContent=`${proj?.name||''} · ${proj?.loc||''} | Ref: ${pkg.ref||''} | ${pkg.date||''} | ${pkg.rev}`;
+
+  const scs=S.scs;
+  if(!scs.length){document.getElementById('compWrap').innerHTML=`<div class="card" style="text-align:center;padding:24px;color:var(--muted);">No subcontractors added.</div>`;return;}
+
+  // Build SC data
+  let scData=scs.map(sc=>{
+    const sub=S.subs[sc.id]||{};
+    let revs=sub.revHistory||[];
+    if(!revs.length&&sub.rev0){revs=[{revNum:0,items:sub.rev0,extraItems:sub.extraItems||[],info:sub.r0info||{},terms:sub.r0terms||{}}];if(sub.rev1)revs.push({revNum:1,items:sub.rev1,info:sub.r1info||{},terms:sub.r1terms||sub.r0terms||{}});}
+    const revTotals=revs.map(rv=>rv.items.reduce((a,x)=>{const n=parseFloat(x.amount);return a+(isNaN(n)||x.option==='rateonly'?0:n);},0));
+    const finalTotal=revTotals.length?revTotals[revTotals.length-1]:0;
+    const terms=revs.length?revs[revs.length-1].terms||{}:{};
+    const info0=revs.length?revs[0].info||{}:{};
+    return{sc,revs,revTotals,finalTotal,terms,info0};
+  });
+
+  // Sort by final offer (lowest first)
+  const withQ=scData.filter(d=>d.revs.length>0).sort((a,b)=>a.finalTotal-b.finalTotal);
+  const noQ=scData.filter(d=>d.revs.length===0);
+  scData=[...withQ,...noQ];
+
+  const budgetTotal=S.boqRows.filter(r=>r.type!=='header'&&r.type!=='section'&&!r.isHeader).reduce((a,r)=>a+(parseFloat(r.quantity)||0)*(parseFloat(r.budgetRate)||0),0);
+
+  // Merge BOQ with SC-added extra rows
+  const allRows=[...S.boqRows];
+  (pkg.scAddedRows||[]).forEach(ei=>{if(!allRows.find(r=>r.id===ei.id))allRows.push({id:ei.id,description:ei.description,unit:ei.unit||'',quantity:ei.qty||'',budgetRate:'',budgetNote:'',type:'item',isHeader:false,_scAdded:true,_addedByScId:ei.addedByScId});});
+
+  let html=`<div class="card" style="padding:0;overflow:hidden;">
+  <div style="background:var(--navy);padding:10px 16px;">
+    <p style="color:#fff;font-size:12px;font-weight:700;">${proj?.name||''} – ${pkg.name}</p>
+    <p style="color:#aab4d0;font-size:10px;">${proj?.loc||''} | Client: ${proj?.client||''} | Consultant: ${proj?.cons||''} | ${pkg.ref||''} - ${pkg.rev}</p>
+    <p style="color:#fbbf24;font-size:10px;margin-top:4px;">⚡ Sorted lowest→highest. EXCL items show lowest competitor price.</p>
+  </div>
+  <div class="tbl-wrap" style="max-height:70vh;overflow-y:auto;"><table>
+  <thead>
+    <tr>
+      <th rowspan="3" style="width:30px;">Sno</th>
+      <th rowspan="3">Description</th>
+      <th rowspan="3" style="width:45px;">Unit</th>
+      <th rowspan="3" style="width:55px;">Qty</th>
+      <th colspan="2" class="gh" style="text-align:center;">BUDGET</th>
+      ${scData.map((d,si)=>{const rc=Math.max(1,d.revs.length);const isLow=si===0&&d.revs.length>0;return`<th colspan="${rc*2}" style="text-align:center;background:${isLow?'#1a5276':'#1a3260'};white-space:normal;">${d.sc.company}${isLow?' 🥇':''}<br><span style="font-weight:400;font-size:9px;">${d.info0.qref||''}</span><br><span style="font-size:9px;opacity:.8;">${d.info0.ctype||'Lumpsum'}</span></th>`;}).join('')}
+    </tr>
+    <tr>
+      <th class="gh">Rate</th><th class="gh">Amount</th>
+      ${scData.map(d=>{const rc=Math.max(1,d.revs.length);return Array.from({length:rc},(_,i)=>{const bg=i===0?'#0d2137':i===1?'#1a5276':'#1a6b52';return`<th style="background:${bg};">R${i} Rate</th><th style="background:${bg};">R${i} Amt</th>`;}).join('');}).join('')}
+    </tr>
+    <tr>
+      <th class="gh" style="font-size:9px;">${pkg.rev}</th><th class="gh" style="font-size:9px;">Total</th>
+      ${scData.map(d=>{const rc=Math.max(1,d.revs.length);return Array.from({length:rc},(_,i)=>{const rv=d.revs[i];const bg=i===0?'#0d2137':i===1?'#1a5276':'#1a6b52';return`<th style="background:${bg};font-size:9px;">${rv?.info?.qdate||''}</th><th style="background:${bg};font-size:9px;">${rv?.info?.qref||''}</th>`;}).join('');}).join('')}
+    </tr>
+  </thead><tbody>`;
+
+  let sno=0;
+  allRows.forEach(row=>{
+    const isH=(row.type==='header')||(row.type==='section')||row.isHeader;
+    if(isH){html+=`<tr style="background:#dbeafe;"><td></td><td colspan="99" style="font-weight:700;color:#1e3a8a;">${esc(row.description)}</td></tr>`;return;}
+    sno++;
+    const hasQty=row.quantity&&row.quantity!=='';
+    const budAmt=hasQty?(parseFloat(row.quantity)||0)*(parseFloat(row.budgetRate)||0):0;
+    const noQtyStyle=!hasQty?'font-weight:700;':'';
+    const isExtra=row._scAdded;
+    const rowStyle=isExtra?'style="background:#fef3c7;"':sno%2===0?'style="background:#fafafa;"':'';
+    let tds=`<td class="num" style="color:#1a5276;">${row.budgetRate?fmt(row.budgetRate):isExtra?'<span style="font-size:9px;color:#d97706;">SC</span>':'-'}</td>`;
+    tds+=`<td class="num" style="color:#1a5276;">${budAmt?fmt(budAmt):'-'}</td>`;
+    scData.forEach(d=>{
+      Array.from({length:Math.max(1,d.revs.length)},(_,i)=>{
+        const rv=d.revs[i];
+        if(isExtra&&d.sc.id!==row._addedByScId){
+          const low=getLowestCompPrice(row.id,d.sc.id);
+          tds+=`<td style="background:#fde8e8;color:#991b1b;font-size:10px;">EXCL</td><td class="num" style="background:#fde8e8;color:#6b7280;font-size:10px;">${low!==null?fmt(low):'0.00'}</td>`;
+          return;
+        }
+        const item=rv?.items?.find(x=>x.boqId===row.id);
+        tds+=getCompCellPair(item,row.id,d.sc.id);
+      });
+    });
+    html+=`<tr ${rowStyle}><td style="text-align:center;${noQtyStyle}">${sno}${isExtra?'*':''}</td><td class="desc" style="${noQtyStyle}" title="${esc(row.description)}">${esc(row.description)}${isExtra?` <span style="font-size:8px;background:#d97706;color:#fff;padding:1px 4px;border-radius:3px;">SC</span>`:''}</td><td style="text-align:center;">${esc(row.unit)}</td><td class="num">${row.quantity||''}</td>${tds}</tr>`;
+  });
+
+  let totTds=`<td></td><td class="num" style="font-weight:700;">${fmt(budgetTotal)}</td>`;
+  scData.forEach(d=>{Array.from({length:Math.max(1,d.revs.length)},(_,i)=>{const tot=d.revTotals[i]||0;const isLast=i===d.revs.length-1;totTds+=`<td></td><td class="num" style="font-weight:700;${isLast?'color:var(--navy);background:#fef9f0;':''}">${tot?fmt(tot):'-'}</td>`;});});
+  html+=`<tr style="background:#e8edf7;font-weight:700;border-top:2px solid var(--navy);"><td colspan="3"><strong>TOTAL AMOUNT</strong></td><td></td>${totTds}</tr>`;
+
+  let savTds=`<td></td><td class="num">-</td>`;
+  scData.forEach(d=>{Array.from({length:Math.max(1,d.revs.length)},(_,i)=>{
+    const tot=d.revTotals[i]||0;
+    const pct=budgetTotal&&tot?(budgetTotal-tot)/budgetTotal:null;
+    const pctStr=pct!==null?(pct*100).toFixed(1)+'%':'-';
+    const isLoss=pct!==null&&pct<0;
+    const col=isLoss?'#dc2626':'#16a34a';
+    const bg=isLoss?'background:#fde8e8;':'background:#f0fff4;';
+    savTds+=`<td style="${bg}"></td><td class="num" style="${bg}color:${col};font-weight:700;">${pctStr}</td>`;
+  });});
+  html+=`<tr style="border-top:2px solid var(--border);"><td colspan="3" style="font-weight:700;font-size:11px;padding:6px 8px;">Savings / (Loss) vs Budget (%)</td><td></td>${savTds}</tr>`;
+
+  html+=`<tr style="background:#e8edf7;"><td colspan="99" style="font-weight:700;color:var(--navy);padding:6px 10px;">SPECIFICATIONS</td></tr>`;
+  html+=`<tr><td></td><td>Specified Manufacturer</td><td colspan="2"></td><td colspan="2">${esc(S.adminFields.mfr||'-')}</td>${scData.map(d=>`<td colspan="${Math.max(1,d.revs.length)*2}">${d.terms.mat||'-'}</td>`).join('')}</tr>`;
+
+  html+=`<tr style="background:#e8edf7;"><td colspan="99" style="font-weight:700;color:var(--navy);padding:6px 10px;">COMMERCIAL TERMS & CONDITIONS</td></tr>`;
+  const tfs=[['Advance (%)','adv'],['Advance Payment Guarantee (SC/BG)','advg'],['Performance (10%)','perf'],['Performance Guarantee (SC/BG)','perfg'],['Retention 10% (5% TOC/5% DLP)','ret'],['Material on Site %','mos'],['Progress Payment %','prog'],['Payment Terms','pay'],['Delivery Conditions','del'],['Warranty','warr'],['Proposed Material','mat'],['Notes / Exclusions','notes']];
+  tfs.forEach(([label,key])=>{
+    html+=`<tr><td></td><td style="font-size:10px;">${label}</td><td colspan="2"></td><td colspan="2"></td>`;
+    scData.forEach(d=>{html+=`<td colspan="${Math.max(1,d.revs.length)*2}" style="font-size:10px;">${d.terms[key]||'-'}</td>`;});
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table></div></div>`;
+  document.getElementById('compWrap').innerHTML=html;
+
+  document.getElementById('compSigs').innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:20px;margin-top:24px;border-top:1px solid var(--border);padding-top:14px;">
+    ${[['PREPARED BY','Ms. Reshma Ashok','Sr. Procurement Engineer'],['REVIEWED BY','Mr. Makesh Nagarajan','HOD – Procurement'],['APPROVED BY','Mr. Asad Shaikh','Cost Control Manager'],['AUTHORISED BY','Mr. Danny Kurian','Director – BCC']].map(([role,name,title])=>`
+    <div>
+      <p style="font-size:9px;color:var(--muted);font-weight:700;">${role}</p>
+      <p style="font-size:12px;font-weight:700;">${name}</p>
+      <p style="font-size:10px;color:var(--muted);">${title}</p>
+      <div style="margin-top:16px;border-top:1px solid #ccc;padding-top:6px;font-size:10px;color:var(--muted);">Signature: _________________________ Date: ____________</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function getCompCellPair(item,boqId,scId){
+  if(!item)return`<td style="color:#9ca3af;font-size:10px;">-</td><td style="color:#9ca3af;font-size:10px;">-</td>`;
+  if(item.option==='excluded'){
+    const low=getLowestCompPrice(boqId,scId);
+    return`<td style="background:#fde8e8;color:#991b1b;font-weight:700;font-size:10px;">EXCL</td><td class="num" style="background:#fde8e8;color:#6b7280;font-size:10px;">${low!==null?fmt(low):'0.00'}</td>`;
+  }
+  if(item.option==='included')return`<td style="background:#d1fae5;font-size:10px;">INCL</td><td style="background:#d1fae5;font-size:10px;">INCL</td>`;
+  if(item.option==='rateonly')return`<td class="num" style="color:#7c3aed;">${item.rate?fmt(item.rate):'-'}</td><td style="color:#7c3aed;font-size:10px;text-align:center;">Rate Only</td>`;
+  const amt=parseFloat(item.amount)||0;
+  return`<td class="num">${item.rate?fmt(item.rate):'-'}</td><td class="num">${amt?fmt(amt):'-'}</td>`;
+}
+
+function getLowestCompPrice(boqId,excludingScId){
+  let lowest=null;
+  S.scs.forEach(sc=>{
+    if(sc.id===excludingScId)return;
+    const sub=S.subs[sc.id]||{};
+    let revs=sub.revHistory||[];
+    if(!revs.length&&sub.rev0)revs=[{items:sub.rev0}];
+    const rv=revs.length?revs[revs.length-1]:null;
+    if(!rv)return;
+    const item=rv.items?.find(x=>x.boqId===boqId);
+    if(!item||item.option==='excluded')return;
+    const amt=parseFloat(item.amount)||0;
+    if(amt>0&&(lowest===null||amt<lowest))lowest=amt;
+  });
+  return lowest;
+}
+
+
+
+// ════════════════════════════════════════════════════════════════════
+//  SUMMARY
+// ════════════════════════════════════════════════════════════════════
+function unlockSum(){
+  const pw=v('sumPw');if(!S.curPkg){toast('Select a package first','warn');return;}
+  if(pw===S.curPkg.password){S.sumUnlocked=true;document.getElementById('sumLock').classList.add('hidden');document.getElementById('sumContent').classList.remove('hidden');renderSum();}
+  else{toast('Incorrect password','error');document.getElementById('sumPw').value='';}
+}
+function renderSum(){
+  if(!S.sumUnlocked)return;
+  const el=document.getElementById('sumWrap');
+  if(!S.curProj){el.innerHTML=`<p class="text-muted">No project selected.</p>`;return;}
+  const allPkgs=S.curProj.packages||[];
+  let html=`<div class="card" style="background:var(--navy);padding:14px;margin-bottom:16px;"><h3 style="color:var(--gold2);font-size:14px;font-weight:700;">BCC – COMPARISON STATEMENT SUMMARY</h3><p style="color:#aab4d0;font-size:11px;">${S.curProj.name} · ${S.curProj.client||''} · ${S.curProj.cons||''} · ${S.curProj.loc||''}</p></div>`;
+  html+=`<div class="tbl-wrap"><table style="font-size:10.5px;"><thead>
+    <tr>
+      <th rowspan="2" style="width:25px;">#</th><th rowspan="2">Vendor Name</th>
+      <th colspan="6" style="text-align:center;">Bid History</th>
+      <th colspan="4" style="text-align:center;background:var(--gold);">Payment Terms (Final Rev)</th>
+      <th colspan="2" style="text-align:center;background:#1a3260;">Securities</th>
+      <th colspan="2" class="gh" style="text-align:center;">Final Offer</th>
+      <th rowspan="2">Remarks</th>
+    </tr>
+    <tr>
+      <th>Rev 0</th><th>Rev 1</th><th>Rev 2</th><th>Rev 3</th><th>Rev 4</th><th>Rev 5</th>
+      <th style="background:#c9973a40;">Advance %</th><th style="background:#c9973a40;">MOS %</th><th style="background:#c9973a40;">Progress %</th><th style="background:#c9973a40;">Retention</th>
+      <th style="background:#1a326040;">Adv. Gty</th><th style="background:#1a326040;">Perf. Bond</th>
+      <th class="gh">Amount (AED)</th><th class="gh">Savings %</th>
+    </tr>
+  </thead><tbody>`;
+
+  const chartLabels=[],chartData=[];
+  allPkgs.forEach((pkg,pi)=>{
+    const scs=pkg.subcontractors||[];
+    const subs=pkg.submissions||{};
+    const budgetTotal=(pkg.boqRows||[]).filter(r=>r.type!=='header'&&r.type!=='section'&&!r.isHeader&&r.quantity&&r.budgetRate).reduce((a,r)=>a+(parseFloat(r.quantity)||0)*(parseFloat(r.budgetRate)||0),0);
+    const scRows=scs.map(sc=>{
+      const sub=subs[sc.id]||{};
+      let revs=sub.revHistory||[];
+      if(!revs.length&&sub.rev0)revs=[{revNum:0,items:sub.rev0,info:sub.r0info||{},terms:sub.r0terms||{}}];
+      if(!revs.length)return null;
+      const revTotals=revs.map(rv=>rv.items.reduce((a,x)=>{const n=parseFloat(x.amount);return a+(isNaN(n)?0:n);},0));
+      const finalOffer=revTotals[revTotals.length-1];
+      const ft=revs[revs.length-1].terms||{};
+      return{sc,revs,revTotals,finalOffer,ft,info0:revs[0].info||{}};
+    }).filter(Boolean).sort((a,b)=>a.finalOffer-b.finalOffer);
+
+    if(!scRows.length){html+=`<tr><td colspan="17" style="text-align:center;padding:14px;color:var(--muted);">No quotes for ${pkg.name}</td></tr>`;return;}
+    html+=`<tr style="background:#e8edf7;"><td colspan="17" style="font-weight:700;color:var(--navy);padding:5px 10px;">Package ${pi+1}: ${pkg.name} <span style="font-weight:400;font-size:10px;color:var(--muted);">· ${pkg.ref||''} · Budget: AED ${fmt(budgetTotal)}</span></td></tr>`;
+
+    scRows.forEach((row,si)=>{
+      const savings=budgetTotal&&row.finalOffer?(((budgetTotal-row.finalOffer)/budgetTotal)*100).toFixed(1)+'%':'-';
+      const rankBadge=si===0?'<span class="badge bk">Lowest</span>':si===1?'<span class="badge bn">2nd</span>':`<span class="badge gray">${si+1}th</span>`;
+      const revCells=Array.from({length:6},(_,i)=>{const t=row.revTotals[i];return`<td class="num" style="font-size:10px;">${t!=null?fmt(t):'-'}</td>`;}).join('');
+      const t=row.ft;
+      html+=`<tr ${si===0?'style="background:#f0fff4;"':''}>
+        <td>${si+1} ${rankBadge}</td>
+        <td><strong>${row.sc.company}</strong><br><span style="font-size:9px;color:var(--muted);">${row.info0.qref||''}</span></td>
+        ${revCells}
+        <td style="font-size:10px;">${t.adv||'-'}</td><td style="font-size:10px;">${t.mos||'-'}</td><td style="font-size:10px;">${t.prog||'-'}</td><td style="font-size:9px;">${t.ret||'-'}</td>
+        <td style="font-size:10px;">${t.advg||'-'}</td><td style="font-size:10px;">${t.perfg||'-'}</td>
+        <td class="num" style="font-weight:700;color:var(--navy);background:#fef9f0;">${fmt(row.finalOffer)}</td>
+        <td class="num" style="color:var(--success);font-weight:700;">${savings}</td>
+        <td><input class="tbl-input" style="width:120px;font-size:10px;" value="${pkg.summaryNotes||''}" onchange="pNote('${pkg.id}',this.value)"></td>
+      </tr>`;
+      if(si===0){chartLabels.push(pkg.name.substring(0,18));chartData.push(row.finalOffer);}
+    });
+  });
+  html+=`</tbody></table></div>`;
+  el.innerHTML=html;
+  drawChart(chartLabels,chartData);
+}
+async function pNote(pkgId,val){
+  const pkg=S.curProj?.packages?.find(x=>x.id===pkgId);
+  if(pkg){pkg.summaryNotes=val;await persist();}
+}
+function drawChart(labels,data){
+  const canvas=document.getElementById('sumChart');
+  if(!labels.length){canvas.style.display='none';return;}
+  canvas.style.display='block';
+  const W=Math.max(500,labels.length*130),H=280;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  const pad={t:30,r:20,b:70,l:80};
+  const w=W-pad.l-pad.r,h=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  const maxV=Math.max(...data)*1.1||1;
+  const bW=Math.min(55,w/labels.length*0.6);
+  const gap=(w-labels.length*bW)/(labels.length+1);
+  for(let i=0;i<=5;i++){const y=pad.t+h-(h*i/5);ctx.strokeStyle='#eee';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+w,y);ctx.stroke();ctx.fillStyle='#666';ctx.font='9px Arial';ctx.textAlign='right';ctx.fillText('AED '+fmt(maxV*i/5).replace('.00',''),pad.l-4,y+3);}
+  labels.forEach((lbl,i)=>{
+    const x=pad.l+gap+(i*(bW+gap));const bh=h*(data[i]/maxV);const y=pad.t+h-bh;
+    const grad=ctx.createLinearGradient(x,y,x,pad.t+h);grad.addColorStop(0,'#c9973a');grad.addColorStop(1,'#0f2044');
+    ctx.fillStyle=grad;ctx.fillRect(x,y,bW,bh);
+    ctx.fillStyle='#333';ctx.font='bold 9px Arial';ctx.textAlign='center';
+    ctx.fillText('AED '+fmt(data[i]).replace(/\.00$/,''),x+bW/2,y-4);
+    ctx.save();ctx.translate(x+bW/2,pad.t+h+8);ctx.rotate(-Math.PI/6);ctx.textAlign='right';ctx.font='9px Arial';ctx.fillText(lbl,0,0);ctx.restore();
+  });
+  ctx.fillStyle='#0f2044';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.fillText('Lowest Vendor Final Offer by Package (AED)',W/2,H-4);
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  EXCEL EXPORT — Full formatting matching Book2.xlsx
+// ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+//  EXCEL EXPORT — openpyxl via Anthropic API for full Book2.xlsx formatting
+// ════════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════════
+//  EXCEL EXPORT — uses xlsx-style (SheetJS fork with full cell styling)
+//  Loaded from CDN on demand when export is clicked
+// ════════════════════════════════════════════════════════════════════
+
+async function exportExcel(){
+  if(!S.curPkg){toast('No package selected','warn');return;}
+  await doExport(false);
+}
+async function exportSummary(){
+  if(!S.curProj){toast('No project selected','warn');return;}
+  await doExport(true);
+}
+
+async function doExport(summaryOnly){
+  const btn=document.getElementById(summaryOnly?'sumExportBtn':'exportBtn');
+  const origText=btn?.textContent;
+  if(btn){btn.disabled=true;btn.textContent='⏳ Generating...';}
+  toast('⏳ Building formatted Excel...','info');
+
+  try{
+    const payload=buildExcelPayload(summaryOnly);
+    const resp=await fetch('/.netlify/functions/export-excel',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(!resp.ok){
+      const txt=await resp.text();
+      throw new Error(`Server error ${resp.status}: ${txt.slice(0,200)}`);
+    }
+    const blob=await resp.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const pkg=S.curPkg?.name||'BCC';
+    const date=new Date().toISOString().slice(0,10);
+    a.href=url;
+    a.download=summaryOnly?`CS_Summary_${pkg.replace(/[^a-zA-Z0-9]/g,'_')}.xlsx`:`CS_${pkg.replace(/[^a-zA-Z0-9]/g,'_')}_${date}.xlsx`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+    toast('✅ Excel exported with full formatting!','success');
+  }catch(e){
+    console.error('Export failed:',e);
+    toast('Export failed: '+e.message,'error');
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=origText;}
+  }
+}
+
+function buildExcelPayload(summaryOnly){
+  // Sort SCs by final offer
+  let scData=(S.scs||[]).map(sc=>{
+    const sub=S.subs[sc.id]||{};
+    let revs=sub.revHistory||[];
+    if(!revs.length&&sub.rev0){revs=[{items:sub.rev0,info:sub.r0info||{},terms:sub.r0terms||{}}];if(sub.rev1)revs.push({items:sub.rev1,info:sub.r1info||{},terms:sub.r1terms||sub.r0terms||{}});}
+    const revTotals=revs.map(rv=>rv.items.reduce((a,x)=>{const n=parseFloat(x.amount);return a+(isNaN(n)||x.option==='rateonly'?0:n);},0));
+    const finalTotal=revTotals.length?revTotals[revTotals.length-1]:0;
+    return{sc,revs,revTotals,finalTotal,
+      terms:revs.length?revs[revs.length-1].terms||{}:{},
+      info0:revs.length?revs[0].info||{}:{}};
+  });
+  const withQ=scData.filter(d=>d.revs.length>0).sort((a,b)=>a.finalTotal-b.finalTotal);
+  scData=[...withQ,...scData.filter(d=>d.revs.length===0)];
+
+  // Merge BOQ + SC-added rows
+  const allRows=[...(S.boqRows||[])];
+  ((S.curPkg?.scAddedRows)||[]).forEach(ei=>{
+    if(!allRows.find(r=>r.id===ei.id))
+      allRows.push({id:ei.id,description:ei.description,unit:ei.unit||'',
+        quantity:ei.qty||'',budgetRate:'',budgetNote:'',type:'item',
+        isHeader:false,_scAdded:true,_addedByScId:ei.addedByScId});
+  });
+
+  // Build lowest price map for excluded items
+  const lowestPriceMap={};
+  allRows.forEach(row=>{
+    if(row.isHeader||row.type==='header')return;
+    let lowest=null;
+    scData.forEach(d=>{
+      const rv=d.revs.length?d.revs[d.revs.length-1]:null;if(!rv)return;
+      const item=rv.items?.find(x=>x.boqId===row.id);
+      if(!item||item.option==='excluded')return;
+      const amt=parseFloat(item.amount)||0;
+      if(amt>0&&(lowest===null||amt<lowest))lowest=amt;
+    });
+    if(lowest!==null)lowestPriceMap[row.id]=lowest;
+  });
+
+  return{
+    proj:S.curProj||{},
+    pkg:S.curPkg||{},
+    scData,
+    boqRows:allRows,
+    adminFields:S.adminFields||{},
+    lowestPriceMap,
+    summaryOnly,
+    allPkgs:S.curProj?.packages||[]
+  };
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+//  PASSWORD & HELPERS
+// ════════════════════════════════════════════════════════════════════
+function unlockComp(){
+  const pw=v('compPw');if(!S.curPkg){toast('Select a package first','warn');return;}
+  if(pw===S.curPkg.password){S.compUnlocked=true;document.getElementById('compLock').classList.add('hidden');document.getElementById('compContent').classList.remove('hidden');renderComp();}
+  else{toast('Incorrect password','error');document.getElementById('compPw').value='';}
+}
+function unlockSum(){
+  const pw=v('sumPw');if(!S.curPkg){toast('Select a package first','warn');return;}
+  if(pw===S.curPkg.password){S.sumUnlocked=true;document.getElementById('sumLock').classList.add('hidden');document.getElementById('sumContent').classList.remove('hidden');renderSum();}
+  else{toast('Incorrect password','error');document.getElementById('sumPw').value='';}
+}
+function openResetPw(){openModal('resetPwModal');}
+async function doReset(){
+  const pw=v('rp_pw'),pw2=v('rp_pw2');
+  if(!pw||pw.length<4){toast('Min 4 characters','error');return;}
+  if(pw!==pw2){toast('Passwords do not match','error');return;}
+  if(!S.curPkg){toast('No package selected','warn');return;}
+  S.curPkg.password=pw;await persist();closeModal('resetPwModal');toast('Password updated ✓','success');
+}
+function toggleEye(id){const e=document.getElementById(id);if(e)e.type=e.type==='password'?'text':'password';}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function v(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(n){const num=parseFloat(n);if(isNaN(num))return'-';return num.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function toast(msg,type='info'){
+  const t=document.getElementById('toast');t.textContent=msg;
+  t.style.borderLeftColor=type==='success'?'#16a34a':type==='warn'?'#d97706':type==='error'?'#dc2626':'#c9973a';
+  t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3500);
+}
+document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+
+// Boot
+boot();
+</script>
+</body>
+</html>
